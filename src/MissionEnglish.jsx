@@ -158,7 +158,11 @@ export default function MissionEnglishApp() {
     if (!uploadText && !uploadImageBase64) {
       alert("Please upload an image or enter text!");
       return;
-    // No API key needed for local Ollama!
+    }
+    if (!apiKey) {
+      alert("OpenRouter API Key is missing. Please add it to your .env file or Vercel.");
+      return;
+    }
 
     setIsGenerating(true);
 
@@ -167,42 +171,43 @@ export default function MissionEnglishApp() {
       The output MUST be a valid JSON array only, without any markdown formatting or backticks.
       Format example: [{"q": "Question text?", "options": ["Option A", "Option B", "Option C", "Option D"], "correct": 0}]`;
 
-      // Ollama Fallback (Local AI)
+      // OpenRouter Text Content
       let finalContent = prompt;
-      let images = [];
-      
       if (uploadText) {
         finalContent += `\n\nContent: ${uploadText}`;
       }
       if (uploadImageBase64) {
-        images.push(uploadImageBase64.split(',')[1]);
+        // Warning: OpenRouter Free models generally do not support images well. 
+        // We will pass text explaining this limitation to the prompt if they uploaded an image but no text.
+        if (!uploadText) {
+           finalContent += `\n\n(Note: An image was uploaded but this free AI model does not support image reading. Please generate general English grammar questions.)`;
+        }
       }
 
-      const response = await fetch("http://localhost:11434/api/chat", {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: uploadImageBase64 ? "llava" : "llama3",
+          model: "google/gemma-4-26b-a4b-it:free",
           messages: [
             {
               role: "user",
-              content: finalContent,
-              images: images.length > 0 ? images : undefined
+              content: finalContent
             }
-          ],
-          stream: false,
-          format: "json"
+          ]
         })
       });
 
       if (!response.ok) {
-        throw new Error(`Ollama API error ${response.status}: Make sure Ollama is running!`);
+        const errData = await response.json();
+        throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown error'}`);
       }
 
       const data = await response.json();
-      const responseText = data.message?.content;
+      const responseText = data.choices?.[0]?.message?.content;
       
       if (!responseText) throw new Error("No response from API");
 
