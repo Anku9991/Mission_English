@@ -78,10 +78,25 @@ export default function MissionEnglishApp() {
   const qrInputRef = useRef(null);
 
   useEffect(() => {
+    fetchTests();
     if (currentUser === 'admin') {
       fetchAdminResults();
     }
   }, [currentUser]);
+
+  const fetchTests = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/tests`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setMcqSets(data);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch tests", e);
+    }
+  };
 
   const fetchAdminResults = async () => {
     try {
@@ -176,7 +191,7 @@ export default function MissionEnglishApp() {
         }
       };
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -202,6 +217,17 @@ export default function MissionEnglishApp() {
       };
 
       setMcqSets([newSet, ...mcqSets]);
+      
+      try {
+        await fetch(`${API_BASE}/tests`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSet)
+        });
+      } catch (err) {
+        console.error("Failed to save to database", err);
+      }
+
       alert("AI successfully generated MCQs!");
       
       setUploadText("");

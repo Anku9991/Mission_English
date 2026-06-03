@@ -18,7 +18,22 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Schemas
+// Schemas & Models
+
+const testSetSchema = new mongoose.Schema({
+  id: Number,
+  title: String,
+  price: String,
+  description: String,
+  questions: [{
+    q: String,
+    options: [String],
+    answer: String
+  }],
+  createdAt: { type: Date, default: Date.now }
+});
+const TestSet = mongoose.model('TestSet', testSetSchema);
+
 const studentSchema = new mongoose.Schema({
   name: String,
   contactNo: String,
@@ -41,6 +56,26 @@ const TestResult = mongoose.model('TestResult', testResultSchema);
 // API Endpoints
 
 app.get('/', (req, res) => res.send('Mission English Backend is Running!'));
+
+// Test Sets
+app.get('/api/tests', async (req, res) => {
+  try {
+    const tests = await TestSet.find().sort({ createdAt: -1 });
+    res.status(200).json(tests);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/tests', async (req, res) => {
+  try {
+    const newTest = new TestSet(req.body);
+    await newTest.save();
+    res.status(201).json(newTest);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Register/Login Student
 app.post('/api/register', async (req, res) => {
