@@ -20,23 +20,38 @@ mongoose.connect(MONGODB_URI)
 
 // Schemas & Models
 
-const testSetSchema = new mongoose.Schema({
-  id: Number,
+const courseSchema = new mongoose.Schema({
+  id: String,
   title: String,
-  price: String,
+  price: Number,
   description: String,
+  type: { type: String, default: 'mcq' }, // 'mcq' | 'video' | 'notes'
+  contentUrl: String, // For Video URL or PDF URL
+  textContent: String, // For Notes
   questions: [{
+    id: Number,
     q: String,
     options: [String],
-    answer: String
+    correct: Number
   }],
   createdAt: { type: Date, default: Date.now }
 });
-const TestSet = mongoose.model('TestSet', testSetSchema);
+const Course = mongoose.model('Course', courseSchema);
+
+const paymentRequestSchema = new mongoose.Schema({
+  reqId: Number,
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+  studentName: String,
+  testId: String,
+  status: { type: String, default: 'pending' },
+  timestamp: String
+});
+const PaymentRequest = mongoose.model('PaymentRequest', paymentRequestSchema);
 
 const studentSchema = new mongoose.Schema({
   name: String,
   contactNo: String,
+  unlockedCourses: [String],
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -57,11 +72,11 @@ const TestResult = mongoose.model('TestResult', testResultSchema);
 
 app.get('/', (req, res) => res.send('Mission English Backend is Running!'));
 
-// Test Sets
+// Courses (Previously Tests)
 app.get('/api/tests', async (req, res) => {
   try {
-    const tests = await TestSet.find().sort({ createdAt: -1 });
-    res.status(200).json(tests);
+    const courses = await Course.find().sort({ createdAt: -1 });
+    res.status(200).json(courses);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -69,9 +84,18 @@ app.get('/api/tests', async (req, res) => {
 
 app.post('/api/tests', async (req, res) => {
   try {
-    const newTest = new TestSet(req.body);
-    await newTest.save();
-    res.status(201).json(newTest);
+    const newCourse = new Course(req.body);
+    await newCourse.save();
+    res.status(201).json(newCourse);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/tests/:id', async (req, res) => {
+  try {
+    await Course.findOneAndDelete({ id: req.params.id });
+    res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -85,10 +109,20 @@ app.post('/api/register', async (req, res) => {
 
     let student = await Student.findOne({ contactNo, name });
     if (!student) {
-      student = new Student({ name, contactNo });
+      student = new Student({ name, contactNo, unlockedCourses: [] });
       await student.save();
     }
     res.status(200).json(student);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Fetch Unlocked Courses for a student
+app.get('/api/students/:id/unlocked', async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    res.status(200).json(student ? student.unlockedCourses : []);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -128,6 +162,46 @@ app.get('/api/admin/results', async (req, res) => {
   try {
     const results = await TestResult.find().sort({ date: -1 });
     res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Payment Requests
+app.get('/api/payments', async (req, res) => {
+  try {
+    const requests = await PaymentRequest.find({ status: 'pending' }).sort({ _id: -1 });
+    res.status(200).json(requests);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/payments/request', async (req, res) => {
+  try {
+    const reqData = new PaymentRequest(req.body);
+    await reqData.save();
+    res.status(201).json(reqData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/payments/approve', async (req, res) => {
+  try {
+    const { reqId, studentId, testId } = req.body;
+    
+    // Mark payment as approved
+    await PaymentRequest.findOneAndUpdate({ reqId }, { status: 'approved' });
+    
+    // Unlock course for student
+    const student = await Student.findById(studentId);
+    if (student && !student.unlockedCourses.includes(testId)) {
+      student.unlockedCourses.push(testId);
+      await student.save();
+    }
+    
+    res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
