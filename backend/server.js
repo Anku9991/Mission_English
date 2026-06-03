@@ -92,6 +92,19 @@ app.post('/api/tests', async (req, res) => {
   }
 });
 
+app.put('/api/tests/:id', async (req, res) => {
+  try {
+    const updatedCourse = await Course.findOneAndUpdate(
+      { id: req.params.id },
+      req.body,
+      { new: true }
+    );
+    res.status(200).json(updatedCourse);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.delete('/api/tests/:id', async (req, res) => {
   try {
     await Course.findOneAndDelete({ id: req.params.id });

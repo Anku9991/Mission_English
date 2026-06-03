@@ -18,7 +18,10 @@ import {
   QrCode,
   LayoutDashboard,
   Video,
-  FileQuestion
+  FileQuestion,
+  Eye,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || ("sk-or-v1-" + "2f49b13858d55e701d20390dd6d6f04cb8c2a56695cc5fbe41b7e517bb04e2e5"); 
@@ -87,6 +90,7 @@ export default function MissionEnglish() {
     contentUrl: '',
     textContent: ''
   });
+  const [editingCourseId, setEditingCourseId] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -185,36 +189,74 @@ export default function MissionEnglish() {
     }
   };
 
-  const createManualCourse = async () => {
+  const saveCourse = async () => {
     if (!manualForm.title || (!manualForm.contentUrl && manualForm.type === 'video') || (!manualForm.textContent && manualForm.type === 'notes')) {
       alert("Please fill all required fields");
       return;
     }
 
-    const newCourse = {
-      id: Date.now().toString(),
-      title: manualForm.title,
-      description: manualForm.description,
-      price: manualForm.price,
-      type: manualForm.type,
-      contentUrl: manualForm.contentUrl,
-      textContent: manualForm.textContent,
-      questions: []
-    };
+    if (editingCourseId) {
+      // Update existing
+      const updatedCourse = { ...courses.find(c => c.id === editingCourseId), ...manualForm };
+      setCourses(courses.map(c => c.id === editingCourseId ? updatedCourse : c));
+      setAdminView('dashboard');
+      setEditingCourseId(null);
+      try {
+        await fetch(`${API_BASE}/tests/${editingCourseId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(manualForm)
+        });
+        alert("Course updated successfully!");
+      } catch (err) {
+        console.error("Failed to update database", err);
+      }
+    } else {
+      // Create new
+      const newCourse = {
+        id: Date.now().toString(),
+        title: manualForm.title,
+        description: manualForm.description,
+        price: manualForm.price,
+        type: manualForm.type,
+        contentUrl: manualForm.contentUrl,
+        textContent: manualForm.textContent,
+        questions: []
+      };
 
-    setCourses([newCourse, ...courses]);
-    setAdminView('dashboard');
+      setCourses([newCourse, ...courses]);
+      setAdminView('dashboard');
 
-    try {
-      await fetch(`${API_BASE}/tests`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCourse)
-      });
-      alert("Course created successfully!");
-    } catch (err) {
-      console.error("Failed to save to database", err);
+      try {
+        await fetch(`${API_BASE}/tests`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCourse)
+        });
+        alert("Course created successfully!");
+      } catch (err) {
+        console.error("Failed to save to database", err);
+      }
     }
+  };
+
+  const startEditingCourse = (course) => {
+    setEditingCourseId(course.id);
+    setManualForm({
+      title: course.title || '',
+      description: course.description || '',
+      price: course.price || 0,
+      type: course.type || 'video',
+      contentUrl: course.contentUrl || '',
+      textContent: course.textContent || ''
+    });
+    setAdminView('manual_create');
+  };
+
+  const startAdminPreview = (courseId) => {
+    setActiveCourseId(courseId);
+    setStudentAnswers({});
+    setAdminView('course_preview');
   };
 
   const generateQuestionsWithAI = async () => {
@@ -561,16 +603,20 @@ export default function MissionEnglish() {
                   <h2 className="text-xl font-bold mb-6 flex items-center"><BookOpen className="w-5 h-5 mr-2 text-indigo-600"/> Published Courses</h2>
                   <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     {courses.map(course => (
-                      <div key={course.id} className="p-5 border border-slate-100 rounded-2xl bg-slate-50 flex flex-col hover:border-indigo-200 hover:shadow-sm transition-all group">
+                      <div key={course.id} className="p-5 border border-slate-100 rounded-2xl bg-slate-50 flex flex-col hover:border-indigo-200 hover:shadow-sm transition-all group min-h-[160px]">
                         <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-indigo-700 transition-colors">{course.title}</h3>
-                          <button onClick={() => deleteCourse(course.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1 bg-white rounded-md shadow-sm border border-slate-100"><X className="w-4 h-4" /></button>
+                          <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-indigo-700 transition-colors pr-4">{course.title}</h3>
                         </div>
                         <div className="flex items-center space-x-3 mb-3">
                            <span className="text-xs font-bold bg-slate-200 text-slate-600 px-2 py-1 rounded-md uppercase tracking-wide">{course.type}</span>
                            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md border border-green-100">₹{course.price}</span>
                         </div>
-                        <p className="text-sm text-slate-500 line-clamp-2">{course.description}</p>
+                        <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">{course.description}</p>
+                        <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100 mt-auto">
+                          <button onClick={() => startAdminPreview(course.id)} className="text-slate-500 hover:text-indigo-600 transition-colors p-2 bg-white hover:bg-indigo-50 rounded-md shadow-sm border border-slate-200" title="View Course"><Eye className="w-4 h-4" /></button>
+                          <button onClick={() => startEditingCourse(course)} className="text-slate-500 hover:text-amber-600 transition-colors p-2 bg-white hover:bg-amber-50 rounded-md shadow-sm border border-slate-200" title="Edit Course"><Edit className="w-4 h-4" /></button>
+                          <button onClick={() => deleteCourse(course.id)} className="text-slate-500 hover:text-red-600 transition-colors p-2 bg-white hover:bg-red-50 rounded-md shadow-sm border border-slate-200" title="Delete Course"><Trash2 className="w-4 h-4" /></button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -766,9 +812,9 @@ export default function MissionEnglish() {
                 <div className="mb-8 border-b border-slate-100 pb-6">
                   <h2 className="text-2xl font-bold mb-2 flex items-center">
                     <UploadCloud className="w-6 h-6 mr-3 text-indigo-600" />
-                    Upload Manual Course
+                    {editingCourseId ? "Edit Course" : "Upload Manual Course"}
                   </h2>
-                  <p className="text-slate-500">Sell videos, PDFs, or textual notes directly to students.</p>
+                  <p className="text-slate-500">{editingCourseId ? "Update course details, price, or content." : "Sell videos, PDFs, or textual notes directly to students."}</p>
                 </div>
 
                 <div className="space-y-6">
@@ -843,15 +889,91 @@ export default function MissionEnglish() {
                     </div>
                   )}
 
-                  <div className="pt-6">
+                  <div className="pt-6 flex gap-4">
                     <button 
-                      onClick={createManualCourse}
-                      className="w-full bg-slate-900 text-white px-6 py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-lg"
+                      onClick={saveCourse}
+                      className="flex-1 bg-slate-900 text-white px-6 py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-lg"
                     >
-                      Publish Course
+                      {editingCourseId ? "Update Course" : "Publish Course"}
                     </button>
+                    {editingCourseId && (
+                      <button 
+                        onClick={() => { setEditingCourseId(null); setAdminView('dashboard'); }}
+                        className="bg-white border border-slate-200 text-slate-700 px-6 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-colors shadow-sm"
+                      >
+                        Cancel
+                      </button>
+                    )}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {adminView === 'course_preview' && (
+            <div className="max-w-4xl mx-auto w-full">
+              <button onClick={() => setAdminView('dashboard')} className="text-slate-500 hover:text-slate-900 mb-6 flex items-center font-bold text-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 w-max transition-colors">← Back to Dashboard</button>
+              
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-10 w-full overflow-hidden">
+                {(() => {
+                  const activeCourse = courses.find(s => s.id === activeCourseId);
+                  if(!activeCourse) return null;
+
+                  if (activeCourse.type === 'video') {
+                    return (
+                      <div>
+                        <h2 className="text-3xl font-black mb-6 text-slate-900">{activeCourse.title}</h2>
+                        <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-slate-900 mb-8">
+                          <iframe src={activeCourse.contentUrl} className="w-full h-full" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                        </div>
+                        <div className="prose max-w-none">
+                          <h3 className="text-xl font-bold mb-4">Course Description</h3>
+                          <p className="text-slate-600 leading-relaxed text-lg">{activeCourse.description}</p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (activeCourse.type === 'notes') {
+                    return (
+                      <div>
+                        <h2 className="text-3xl font-black mb-8 text-slate-900 border-b border-slate-100 pb-6">{activeCourse.title}</h2>
+                        <div className="bg-amber-50 p-6 md:p-10 rounded-2xl border border-amber-100 text-slate-800 text-lg leading-loose whitespace-pre-wrap font-medium">
+                          {activeCourse.textContent}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // MCQ View
+                  return (
+                    <>
+                      <div className="mb-10 border-b border-slate-100 pb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">{activeCourse.title}</h2>
+                        <div className="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl font-black text-sm self-start sm:self-auto shrink-0 border border-slate-200">{activeCourse.questions.length} Questions</div>
+                      </div>
+
+                      <div className="space-y-10">
+                        {activeCourse.questions.map((q, index) => (
+                          <div key={q.id} className="bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-100">
+                            <h3 className="text-xl font-bold mb-6 leading-relaxed text-slate-800">
+                              <span className="bg-blue-600 text-white w-8 h-8 inline-flex items-center justify-center rounded-lg mr-3 text-sm shadow-sm">Q{index + 1}</span> 
+                              {q.q}
+                            </h3>
+                            <div className="grid gap-3">
+                              {q.options.map((opt, optIndex) => (
+                                <label key={optIndex} className="flex items-center p-4 md:p-5 border-2 rounded-2xl cursor-default border-slate-200 bg-white">
+                                  <input type="radio" disabled name={`question-${q.id}`} className="w-5 h-5 text-blue-600 border-slate-300 mr-4 shrink-0" checked={q.correct === optIndex} />
+                                  <span className={`font-semibold text-lg ${q.correct === optIndex ? 'text-green-600' : 'text-slate-700'}`}>{opt}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}
