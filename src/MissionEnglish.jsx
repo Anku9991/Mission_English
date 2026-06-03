@@ -90,7 +90,11 @@ export default function MissionEnglishApp() {
       if (res.ok) {
         const data = await res.json();
         if (data && data.length > 0) {
-          setMcqSets(data);
+          // Merge backend tests with initial tests
+          const merged = [...data, ...initialMcqSets];
+          // Remove duplicates based on title
+          const unique = Array.from(new Map(merged.map(item => [item.title, item])).values());
+          setMcqSets(unique);
         }
       }
     } catch (e) {
@@ -529,6 +533,22 @@ export default function MissionEnglishApp() {
                 )}
               </div>
             </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 w-full overflow-hidden mb-8">
+             <h2 className="text-xl font-bold mb-6 flex items-center"><BookOpen className="w-5 h-5 mr-2 text-indigo-600"/> Available Courses & Tests (Live)</h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {mcqSets.map(set => (
+                  <div key={set.id} className="bg-slate-50 rounded-2xl border border-slate-200 p-6 flex flex-col">
+                    <h3 className="font-bold text-lg mb-2 text-slate-800">{set.title}</h3>
+                    <p className="text-sm text-slate-500 mb-4 flex-1">{set.description}</p>
+                    <div className="flex justify-between items-center text-sm font-semibold">
+                      <span className="text-indigo-600">{set.questions.length} Questions</span>
+                      <span className="bg-white px-3 py-1 rounded-full border border-slate-200">₹{set.price}</span>
+                    </div>
+                  </div>
+                ))}
+             </div>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 w-full overflow-hidden mb-8">
