@@ -21,7 +21,8 @@ import {
   FileQuestion,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 
 const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || ("sk-or-v1-" + "2f49b13858d55e701d20390dd6d6f04cb8c2a56695cc5fbe41b7e517bb04e2e5"); 
@@ -126,6 +127,21 @@ export default function MissionEnglish() {
       if (payRes.ok) setPaymentRequests(await payRes.json());
     } catch (e) {
       console.log("Failed to fetch admin data", e);
+    }
+  };
+
+  const refreshAdminData = () => {
+    fetchCourses();
+    fetchAdminData();
+  };
+
+  const refreshStudentData = async () => {
+    fetchCourses();
+    if (currentStudent) {
+      try {
+        const unlockRes = await fetch(`${API_BASE}/students/${currentStudent._id}/unlocked`);
+        if (unlockRes.ok) setUnlockedSets(await unlockRes.json());
+      } catch(e) { console.error(e); }
     }
   };
 
@@ -588,6 +604,7 @@ export default function MissionEnglish() {
               </button>
               <button onClick={() => setAdminView('ai_create')} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${adminView === 'ai_create' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'hover:bg-white/10 text-slate-300'}`}>Ankush AI Creator</button>
               <button onClick={() => setAdminView('manual_create')} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${adminView === 'manual_create' ? 'bg-white/20' : 'hover:bg-white/10 text-slate-300'}`}>Upload Course</button>
+              <button onClick={refreshAdminData} className="px-4 py-2 rounded-lg text-sm font-bold text-slate-300 hover:bg-white/10 whitespace-nowrap flex items-center transition-colors"><RefreshCw className="w-4 h-4 mr-2"/> Refresh</button>
               <button onClick={() => { setCurrentUser(null); setStudentResults([]); setPaymentRequests([]); }} className="px-4 py-2 rounded-lg text-sm font-bold text-red-400 hover:bg-red-400/10 ml-2 whitespace-nowrap flex items-center"><LogOut className="w-4 h-4 mr-2"/> Exit</button>
             </div>
           </div>
@@ -998,6 +1015,9 @@ export default function MissionEnglish() {
               <div className="bg-slate-100 px-4 py-2 rounded-xl text-slate-700 font-bold text-sm hidden sm:block border border-slate-200">
                 Hi, {currentStudent?.name || "Student"}
               </div>
+              <button onClick={refreshStudentData} className="text-slate-500 hover:bg-slate-100 hover:text-indigo-600 px-3 py-2 rounded-xl transition-all flex items-center text-sm font-bold">
+                <RefreshCw className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Refresh</span>
+              </button>
               <button 
                 onClick={() => {
                   setCurrentUser(null);
