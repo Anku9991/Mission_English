@@ -208,7 +208,9 @@ export default function MissionEnglishApp() {
       
       if (!responseText) throw new Error("No response from API");
 
-      let generatedQs = JSON.parse(responseText);
+      // Strip markdown backticks if Gemini includes them despite instructions
+      const cleanText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+      let generatedQs = JSON.parse(cleanText);
       
       generatedQs = generatedQs.map((q, i) => ({ ...q, id: Date.now() + i }));
 
@@ -240,7 +242,7 @@ export default function MissionEnglishApp() {
       
     } catch (error) {
       console.error("AI Error:", error);
-      alert("Error generating MCQs. Please check the console or try again.");
+      alert(`Error generating MCQs: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
