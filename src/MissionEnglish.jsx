@@ -184,30 +184,57 @@ export default function MissionEnglishApp() {
         }
       }
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "google/gemma-4-26b-a4b-it:free",
-          messages: [
-            {
-              role: "user",
-              content: finalContent
-            }
-          ]
-        })
-      });
+      const freeModels = [
+        "z-ai/glm-4.5-air:free",
+        "liquid/lfm-2.5-1.2b-instruct:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "meta-llama/llama-3.2-3b-instruct:free",
+        "google/gemma-4-26b-a4b-it:free"
+      ];
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown error'}`);
+      let responseText = null;
+      let lastError = null;
+
+      for (const modelName of freeModels) {
+        try {
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                {
+                  role: "user",
+                  content: finalContent
+                }
+              ]
+            })
+          });
+
+          if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown error'}`);
+          }
+
+          const data = await response.json();
+          responseText = data.choices?.[0]?.message?.content;
+          
+          if (responseText) {
+            console.log(`Successfully generated using: ${modelName}`);
+            break; // Success! Exit the loop.
+          }
+        } catch (err) {
+          lastError = err;
+          console.warn(`Model ${modelName} failed, trying next...`, err.message);
+        }
       }
 
-      const data = await response.json();
-      const responseText = data.choices?.[0]?.message?.content;
+      if (!responseText) {
+        throw new Error(`All free AI models failed due to high traffic. Last error: ${lastError?.message}`);
+      }
       
       if (!responseText) throw new Error("No response from API");
 
