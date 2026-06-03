@@ -40,6 +40,8 @@ const TestResult = mongoose.model('TestResult', testResultSchema);
 
 // API Endpoints
 
+app.get('/', (req, res) => res.send('Mission English Backend is Running!'));
+
 // Register/Login Student
 app.post('/api/register', async (req, res) => {
   try {
