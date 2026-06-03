@@ -195,13 +195,16 @@ export default function MissionEnglishApp() {
         }
       };
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown error'}`);
+      }
 
       const data = await response.json();
       const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
