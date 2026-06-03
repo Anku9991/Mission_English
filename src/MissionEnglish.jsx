@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { 
   BookOpen, 
   UploadCloud, 
@@ -171,44 +172,29 @@ export default function MissionEnglishApp() {
       The output MUST be a valid JSON array only, without any markdown formatting or backticks.
       Format example: [{"q": "Question text?", "options": ["Option A", "Option B", "Option C", "Option D"], "correct": 0}]`;
 
-      let parts = [{ text: prompt }];
+      const genAI = new GoogleGenerativeAI(apiKey);
+      
+      // We use 1.5-flash as the standard for both text and multimodal processing
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const parts = [prompt];
 
       if (uploadImageBase64) {
-        const base64Data = uploadImageBase64.split(',')[1];
-        const mimeType = uploadImageBase64.split(';')[0].split(':')[1];
         parts.push({
           inlineData: {
-            mimeType: mimeType,
-            data: base64Data
+            data: uploadImageBase64.split(',')[1],
+            mimeType: uploadImageBase64.split(';')[0].split(':')[1]
           }
         });
       }
 
       if (uploadText) {
-        parts.push({ text: `Content: ${uploadText}` });
+        parts.push(`Content: ${uploadText}`);
       }
 
-      const payload = {
-        contents: [{ parts }],
-        generationConfig: {
-          responseMimeType: "application/json",
-        }
-      };
-
-      const modelName = uploadImageBase64 ? 'gemini-pro-vision' : 'gemini-pro';
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const result = await model.generateContent(parts);
+      const response = await result.response;
+      const responseText = response.text();
       
       if (!responseText) throw new Error("No response from API");
 
