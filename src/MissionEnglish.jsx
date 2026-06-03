@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { 
   BookOpen, 
   UploadCloud, 
@@ -22,7 +21,7 @@ import {
   LayoutDashboard
 } from 'lucide-react';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ""; 
+const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || ""; 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const initialMcqSets = [
@@ -168,37 +167,51 @@ export default function MissionEnglishApp() {
     setIsGenerating(true);
 
     try {
-      const prompt = `You are an English teacher. Based on the provided content (text or image), generate 3 Multiple Choice Questions (MCQs) for learning English. 
+      const prompt = `You are an English teacher. Based on the provided content, generate 3 Multiple Choice Questions (MCQs) for learning English. 
       The output MUST be a valid JSON array only, without any markdown formatting or backticks.
       Format example: [{"q": "Question text?", "options": ["Option A", "Option B", "Option C", "Option D"], "correct": 0}]`;
 
-      const genAI = new GoogleGenerativeAI(apiKey);
-      
-      // We use 1.5-flash as the standard for both text and multimodal processing
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-      const parts = [prompt];
-
-      if (uploadImageBase64) {
-        parts.push({
-          inlineData: {
-            data: uploadImageBase64.split(',')[1],
-            mimeType: uploadImageBase64.split(';')[0].split(':')[1]
-          }
-        });
-      }
-
+      // OpenRouter Text Content
+      let finalContent = prompt;
       if (uploadText) {
-        parts.push(`Content: ${uploadText}`);
+        finalContent += `\n\nContent: ${uploadText}`;
+      }
+      if (uploadImageBase64) {
+        // Warning: OpenRouter Free models generally do not support images well. 
+        // We will pass text explaining this limitation to the prompt if they uploaded an image but no text.
+        if (!uploadText) {
+           finalContent += `\n\n(Note: An image was uploaded but this free AI model does not support image reading. Please generate general English grammar questions.)`;
+        }
       }
 
-      const result = await model.generateContent(parts);
-      const response = await result.response;
-      const responseText = response.text();
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "meta-llama/llama-3-8b-instruct:free",
+          messages: [
+            {
+              role: "user",
+              content: finalContent
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+      const responseText = data.choices?.[0]?.message?.content;
       
       if (!responseText) throw new Error("No response from API");
 
-      // Strip markdown backticks if Gemini includes them despite instructions
+      // Strip markdown backticks if AI includes them despite instructions
       const cleanText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
       let generatedQs = JSON.parse(cleanText);
       
