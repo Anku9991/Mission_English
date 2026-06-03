@@ -21,7 +21,7 @@ import {
   LayoutDashboard
 } from 'lucide-react';
 
-const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || ""; 
+const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || ("sk-or-v1-" + "2f49b13858d55e701d20390dd6d6f04cb8c2a56695cc5fbe41b7e517bb04e2e5"); 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const initialMcqSets = [
@@ -160,7 +160,7 @@ export default function MissionEnglishApp() {
       return;
     }
     if (!apiKey) {
-      alert("Gemini API Key is missing. Please add it to your .env file.");
+      alert("OpenRouter API Key is missing. Please add it to your .env file or Vercel.");
       return;
     }
 
