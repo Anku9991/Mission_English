@@ -22,7 +22,11 @@ service cloud.firestore {
 
     // Students Collection
     match /students/{studentId} {
-      allow read: if isAuthenticated() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        resource.data.uid == request.auth.uid ||
+        request.auth.token.email == (studentId + '@me.com')
+      );
       allow write: if isAdmin();
     }
 
