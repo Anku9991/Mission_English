@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context"
 
 export default function StudentSettingsPage() {
   const { profile } = useAuth()
+  const studentProfile = profile?.role === 'student' ? profile : null;
 
   return (
     <div className="max-w-4xl pt-4">
@@ -25,11 +26,11 @@ export default function StudentSettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input placeholder="Your Name" defaultValue={(profile as any)?.fullName || ""} />
+              <Input placeholder="Your Name" defaultValue={studentProfile?.fullName || ""} />
             </div>
             <div className="space-y-2">
               <Label>Phone Number</Label>
-              <Input disabled value={(profile as any)?.phone || ""} />
+              <Input disabled value={studentProfile?.phone || ""} />
               <p className="text-xs text-slate-500">Phone number cannot be changed as it is used for login.</p>
             </div>
             <Button>Save Changes</Button>

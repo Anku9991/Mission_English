@@ -1,10 +1,11 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { 
   LayoutDashboard, 
-  BookOpen, 
   Settings, 
   LogOut,
   Trophy
@@ -22,12 +23,13 @@ const sidebarLinks = [
 export default function StudentSidebar() {
   const pathname = usePathname()
   const { logout, profile } = useAuth()
+  const studentProfile = profile?.role === 'student' ? profile : null;
 
   return (
     <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen sticky top-0">
       <div className="p-6">
         <Link href="/student" className="flex items-center space-x-3 mb-10">
-          <img src="/logo.jpeg" alt="Mission English" className="w-10 h-10 object-contain bg-white rounded-full p-1" />
+          <Image src="/logo.jpeg" alt="Mission English" width={40} height={40} className="object-contain bg-white rounded-full p-1" />
           <span className="text-xl font-bold text-white tracking-tight">Mission English</span>
         </Link>
 
@@ -59,10 +61,10 @@ export default function StudentSidebar() {
         <div className="bg-slate-800 rounded-xl p-4 mb-4">
           <div className="flex items-center space-x-3 mb-3">
             <div className="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-              {profile?.name?.[0] || profile?.phoneNumber?.slice(-1) || 'S'}
+              {studentProfile?.fullName?.[0] || studentProfile?.phone?.slice(-1) || 'S'}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">{profile?.name || profile?.phoneNumber || 'Student'}</p>
+              <p className="text-sm font-medium text-white truncate">{studentProfile?.fullName || studentProfile?.phone || 'Student'}</p>
               <p className="text-xs text-slate-400">Student</p>
             </div>
           </div>
