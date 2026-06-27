@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Plus, Edit, Trash2, Clock, FileText, PlayCircle } from "lucide-react"
+import { Plus, Edit, Trash2, Clock, FileText, PlayCircle, BookOpen } from "lucide-react"
 
 const MOCK_TESTS = [
   { id: 1, title: "SSC CGL English Tier 1", type: "cbt", price: "₹299", questions: 50, duration: "60 mins" },
