@@ -51,15 +51,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const isPhoneAuth = firebaseUser.providerData.some(p => p.providerId === 'phone')
             const role: UserRole = isPhoneAuth ? "student" : "admin"
             
-            const newProfile: UserProfile = {
+            const userData: any = {
               uid: firebaseUser.uid,
               role,
-              phoneNumber: firebaseUser.phoneNumber || undefined,
-              email: firebaseUser.email || undefined,
               createdAt: Date.now()
-            }
-            await setDoc(docRef, newProfile)
-            setProfile(newProfile)
+            };
+
+            if (firebaseUser.email) userData.email = firebaseUser.email;
+            if (firebaseUser.phoneNumber) userData.phoneNumber = firebaseUser.phoneNumber;
+            if (firebaseUser.displayName) userData.name = firebaseUser.displayName;
+
+            await setDoc(docRef, userData);
+            setProfile(userData as UserProfile);
           }
         } catch (error) {
           console.error("Firebase fetch error:", error);
