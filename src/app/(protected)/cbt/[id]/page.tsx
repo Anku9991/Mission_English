@@ -97,7 +97,8 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
       totalMarks,
       totalQuestions: course.questions!.length,
       submittedAt: Date.now(),
-      timeTaken: Math.floor((Date.now() - startTime) / 1000)
+      timeTaken: Math.floor((Date.now() - startTime) / 1000),
+      isPublished: false
     }
 
     try {

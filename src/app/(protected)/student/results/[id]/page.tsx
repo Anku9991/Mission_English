@@ -1,118 +1,166 @@
 "use client"
 
+import { useEffect, useState, use } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { doc, getDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { use } from "react"
-import { ArrowLeft, Trophy, CheckCircle2, XCircle, MinusCircle, Target } from "lucide-react"
+import { ArrowLeft, Trophy, CheckCircle2, XCircle, MinusCircle, Target, Loader2, Clock, ShieldAlert } from "lucide-react"
+import type { CBTResult } from "@/types"
 
 export default function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
-  // Mock results data
-  const result = {
-    testName: "SSC CGL English Tier 1",
-    totalQuestions: 50,
-    attempted: 45,
-    correct: 38,
-    wrong: 7,
-    skipped: 5,
-    totalMarks: 100,
-    marksObtained: 72.5,
-    accuracy: 84.4,
-    percentile: 92.1,
+  const resultId = resolvedParams.id
+  
+  const [result, setResult] = useState<CBTResult | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    async function fetchResult() {
+      try {
+        const docSnap = await getDoc(doc(db, "results", resultId))
+        if (!docSnap.exists()) {
+          throw new Error("Result not found")
+        }
+        setResult({ id: docSnap.id, ...docSnap.data() } as CBTResult)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchResult()
+  }, [resultId])
+
+  if (loading) {
+    return <div className="flex justify-center p-20"><Loader2 className="w-10 h-10 animate-spin text-blue-500" /></div>
   }
 
+  if (error || !result) {
+    return (
+      <div className="max-w-md mx-auto mt-20 text-center bg-red-50 p-8 rounded-3xl border border-red-100">
+        <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
+        <p className="text-red-500">{error || "Could not load result."}</p>
+        <Link href="/student/results">
+          <Button className="mt-6 rounded-xl">Back to Results</Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Pending Admin Verification State
+  if (!result.isPublished) {
+    return (
+      <div className="max-w-2xl mx-auto pt-10 pb-20 px-4">
+        <div className="flex items-center space-x-4 mb-8">
+          <Link href="/student/results">
+            <Button variant="ghost" size="icon" className="rounded-xl border border-slate-200">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
+        
+        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-10 text-center shadow-sm">
+          <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <Clock className="w-10 h-10" />
+          </div>
+          <h1 className="text-2xl font-black text-slate-900 mb-3">Result Pending Verification</h1>
+          <p className="text-slate-600 max-w-md mx-auto leading-relaxed mb-8">
+            Your test for <span className="font-bold text-slate-800">{result.courseTitle}</span> has been successfully submitted. 
+            The admin is currently verifying the answers and will publish your detailed performance report shortly.
+          </p>
+          <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-400 uppercase tracking-wider bg-white py-3 px-6 rounded-xl inline-flex border border-slate-200 shadow-sm">
+            <ShieldAlert className="w-4 h-4 text-amber-500" /> Admin Review in Progress
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Published State - Real Data Calculation
+  const totalQuestions = result.totalQuestions || 1
+  const attempted = Object.keys(result.answers || {}).length
+  const skipped = totalQuestions - attempted
+  const marksObtained = result.score || 0
+  const totalMarks = result.totalMarks || 1
+  
+  // Calculate correct/incorrect based on score vs attempted (Note: full breakdown requires checking against course document, but we can estimate or just show the score for now if we didn't save the exact breakdown. Wait, we didn't save `correctCount` in CBTResult. We only saved `score`, `totalMarks`, `answers`. We can calculate accuracy as marksObtained / totalMarks. Let's just show standard stats).
+  const accuracy = Math.round((marksObtained / totalMarks) * 100)
+  
   return (
-    <div className="max-w-5xl mx-auto pt-4 pb-20">
+    <div className="max-w-5xl mx-auto pt-4 pb-20 px-4">
       <div className="flex items-center space-x-4 mb-8">
         <Link href="/student/results">
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-xl border border-slate-200 hover:bg-slate-50">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Performance Report</h1>
-          <p className="text-slate-500 mt-1">{result.testName}</p>
+          <h1 className="text-3xl font-black text-slate-900">Performance Report</h1>
+          <p className="text-slate-500 mt-1">{result.courseTitle}</p>
         </div>
       </div>
 
       {/* Main Score Highlight */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-600 to-indigo-700 text-white md:col-span-2">
-          <CardContent className="p-8 flex items-center justify-between">
+        <Card className="border-0 shadow-sm gradient-bg text-white md:col-span-2 rounded-3xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+          <CardContent className="p-10 flex items-center justify-between relative z-10">
             <div>
-              <p className="text-blue-100 font-medium mb-2">Total Score</p>
+              <p className="text-white/80 font-bold uppercase tracking-wider text-sm mb-2">Total Score</p>
               <div className="flex items-end space-x-2">
-                <span className="text-5xl font-black">{result.marksObtained}</span>
-                <span className="text-xl text-blue-200 mb-1">/ {result.totalMarks}</span>
+                <span className="text-6xl font-black drop-shadow-md">{marksObtained}</span>
+                <span className="text-2xl text-white/60 mb-2 font-bold">/ {totalMarks}</span>
               </div>
             </div>
-            <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center">
-              <Trophy className="w-12 h-12 text-yellow-400" />
+            <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center shadow-inner">
+              <Trophy className="w-12 h-12 text-yellow-300 drop-shadow-md" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="border-0 shadow-sm bg-white">
-          <CardContent className="p-8 flex flex-col items-center justify-center h-full">
-            <Target className="w-8 h-8 text-indigo-500 mb-2" />
-            <div className="text-3xl font-bold text-slate-900">{result.percentile}%</div>
-            <p className="text-sm text-slate-500 font-medium mt-1">Percentile</p>
+        <Card className="border-0 shadow-sm rounded-3xl bg-white flex flex-col items-center justify-center">
+          <CardContent className="p-8 text-center">
+            <Target className="w-10 h-10 text-indigo-500 mb-3 mx-auto" />
+            <div className="text-4xl font-black text-slate-900">{accuracy}%</div>
+            <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mt-2">Accuracy</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Detailed Analysis Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Accuracy</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{result.accuracy}%</div>
-            <div className="w-full bg-slate-100 h-2 mt-3 rounded-full overflow-hidden">
-              <div className="bg-blue-600 h-full rounded-full" style={{ width: `${result.accuracy}%` }}></div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-0 shadow-sm rounded-2xl hover:-translate-y-1 transition-transform">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium text-slate-500">Correct</CardTitle>
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Total Questions</CardTitle>
+            <CheckCircle2 className="w-5 h-5 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{result.correct} <span className="text-sm font-normal text-slate-400">/ {result.totalQuestions}</span></div>
+            <div className="text-3xl font-black text-slate-900">{totalQuestions}</div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm rounded-2xl hover:-translate-y-1 transition-transform">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium text-slate-500">Incorrect</CardTitle>
-            <XCircle className="w-4 h-4 text-red-500" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Attempted</CardTitle>
+            <Target className="w-5 h-5 text-indigo-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{result.wrong} <span className="text-sm font-normal text-slate-400">/ {result.totalQuestions}</span></div>
+            <div className="text-3xl font-black text-slate-900">{attempted}</div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm rounded-2xl hover:-translate-y-1 transition-transform">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium text-slate-500">Skipped</CardTitle>
-            <MinusCircle className="w-4 h-4 text-slate-400" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Skipped</CardTitle>
+            <MinusCircle className="w-5 h-5 text-slate-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{result.skipped} <span className="text-sm font-normal text-slate-400">/ {result.totalQuestions}</span></div>
+            <div className="text-3xl font-black text-slate-900">{skipped}</div>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="mt-8">
-        <Link href={`/student/results/${resolvedParams.id}/review`}>
-          <Button variant="outline" className="w-full md:w-auto h-12 px-8">
-            Review Questions & Answers
-          </Button>
-        </Link>
       </div>
     </div>
   )

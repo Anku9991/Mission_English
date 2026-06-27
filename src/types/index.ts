@@ -68,4 +68,5 @@ export interface CBTResult {
   totalQuestions: number
   submittedAt: number
   timeTaken: number // seconds
+  isPublished?: boolean
 }

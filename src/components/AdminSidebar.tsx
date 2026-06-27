@@ -10,7 +10,8 @@ import {
   Users, 
   Settings, 
   LogOut,
-  CreditCard
+  CreditCard,
+  FileBarChart
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,7 @@ const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Tests & Courses", href: "/admin/tests", icon: BookOpen },
   { name: "Payments", href: "/admin/payments", icon: CreditCard },
+  { name: "Results", href: "/admin/results", icon: FileBarChart },
   { name: "Students", href: "/admin/students", icon: Users },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
