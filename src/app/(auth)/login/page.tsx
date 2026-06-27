@@ -70,9 +70,10 @@ export default function LoginPage() {
         throw new Error("Your account is awaiting admin approval.")
       }
 
-      // Step 2: Sign in with mapped email and PIN
+      // Step 2: Sign in with mapped email and PIN (padded to 6 chars for Firebase Auth rules)
       const mappedEmail = `${formattedStudentId}@me.com`
-      await signInWithEmailAndPassword(auth, mappedEmail, pin)
+      const firebasePassword = `${pin}ME`
+      await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
       
       // Update lastLogin silently
       await updateDoc(docRef, { lastLogin: Date.now() })

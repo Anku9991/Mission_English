@@ -80,7 +80,9 @@ export default function AddStudentPage() {
       const mappedEmail = `${formattedStudentId}@me.com`
       
       // 1. Create user in Firebase Auth using SECONDARY APP (so admin stays logged in)
-      const userCredential = await createUserWithEmailAndPassword(secondaryAuth, mappedEmail, pin)
+      // Note: Firebase requires passwords to be at least 6 characters. We append "ME" to the 4-digit PIN.
+      const firebasePassword = `${pin}ME`
+      const userCredential = await createUserWithEmailAndPassword(secondaryAuth, mappedEmail, firebasePassword)
       
       // 2. Save student profile to Firestore
       const studentData = {
