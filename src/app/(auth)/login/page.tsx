@@ -70,14 +70,6 @@ export default function LoginPage() {
         await auth.signOut()
         throw new Error("Your account is inactive. Please contact admin.")
       }
-      if (studentData.paymentStatus === "Pending") {
-        await auth.signOut()
-        throw new Error("Please complete your payment to continue.")
-      }
-      if (studentData.testUnlocked === false) {
-        await auth.signOut()
-        throw new Error("Your account is awaiting admin approval.")
-      }
       
       // Update lastLogin silently
       await updateDoc(docRef, { lastLogin: Date.now() })

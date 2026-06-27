@@ -4,12 +4,58 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Lock, FileText, PlayCircle, Clock } from "lucide-react"
+import { Lock, FileText, PlayCircle, Clock, ShieldAlert } from "lucide-react"
 
 const MOCK_CONTENT: any[] = []
 
 export default function StudentDashboard() {
   const { profile } = useAuth()
+  
+  if (profile?.role === "student" && profile.paymentStatus === "Pending") {
+    return (
+      <div className="pb-20 flex flex-col items-center justify-center pt-24 min-h-[70vh]">
+        <div className="bg-amber-100 p-6 rounded-full mb-6">
+          <ShieldAlert className="w-16 h-16 text-amber-600" />
+        </div>
+        <h1 className="text-3xl font-black text-slate-900 mb-4 text-center">Payment Pending</h1>
+        <p className="text-slate-500 max-w-md text-center text-lg mb-8 leading-relaxed">
+          Your account has been created successfully, but your payment is currently marked as <span className="font-bold text-amber-600">Pending</span>.
+        </p>
+        <Card className="w-full max-w-md border-0 shadow-lg bg-white overflow-hidden">
+          <div className="bg-slate-900 text-white p-4 text-center">
+            <h3 className="font-bold">How to activate your account?</h3>
+          </div>
+          <CardContent className="p-6">
+            <ol className="list-decimal pl-5 space-y-4 text-slate-700">
+              <li>Contact your administrator to complete the payment.</li>
+              <li>Once payment is verified, the admin will approve your account.</li>
+              <li>Refresh this page to access your courses and tests.</li>
+            </ol>
+            <Button className="w-full mt-6" onClick={() => window.location.reload()}>
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (profile?.role === "student" && profile.testUnlocked === false) {
+    return (
+      <div className="pb-20 flex flex-col items-center justify-center pt-24 min-h-[70vh]">
+        <div className="bg-red-100 p-6 rounded-full mb-6">
+          <Lock className="w-16 h-16 text-red-600" />
+        </div>
+        <h1 className="text-3xl font-black text-slate-900 mb-4 text-center">Account Locked</h1>
+        <p className="text-slate-500 max-w-md text-center text-lg mb-8 leading-relaxed">
+          Your account is currently locked by the administrator. You cannot access tests or courses at this time.
+        </p>
+        <Button onClick={() => window.location.reload()} size="lg">
+          Check Status Again
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="pb-20">
