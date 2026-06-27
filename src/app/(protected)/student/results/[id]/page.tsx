@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { use } from "react"
 import { ArrowLeft, Trophy, CheckCircle2, XCircle, MinusCircle, Target } from "lucide-react"
 
-export default function ResultPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params)
+export default function ResultPage({ params }: any) {
+  const resolvedParams = use(params as Promise<{ id: string }>)
   // Mock results data
   const result = {
     testName: "SSC CGL English Tier 1",
