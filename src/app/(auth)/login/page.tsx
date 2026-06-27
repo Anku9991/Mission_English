@@ -54,6 +54,9 @@ export default function LoginPage() {
       const mappedEmail = `${formattedStudentId}@me.com`
       const firebasePassword = `${pin}ME`
       await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
+      
+      // Give Firebase a tiny moment to propagate the auth token to Firestore internally
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       // Step 2: Now authenticated, fetch student document to check access rules
       const docRef = doc(db, "students", formattedStudentId)

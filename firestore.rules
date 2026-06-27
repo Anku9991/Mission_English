@@ -25,7 +25,7 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         isAdmin() || 
         resource.data.uid == request.auth.uid ||
-        request.auth.token.email == (studentId + '@me.com')
+        request.auth.token.email == (studentId.lower() + '@me.com')
       );
       allow write: if isAdmin();
     }
