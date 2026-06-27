@@ -10,23 +10,21 @@ import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Mail, ShieldAlert, GraduationCap, Loader2, KeyRound, User } from "lucide-react"
+import {
+  BookOpen, Mail, ShieldCheck, GraduationCap,
+  Loader2, KeyRound, User, ArrowRight, Eye, EyeOff
+} from "lucide-react"
 
 export default function LoginPage() {
   const [role, setRole] = useState<"student" | "admin">("student")
-  
-  // Student Auth
   const [studentId, setStudentId] = useState("")
   const [pin, setPin] = useState("")
-  
-  // Admin Auth
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  
+
   const { user, profile } = useAuth()
   const router = useRouter()
 
@@ -43,46 +41,41 @@ export default function LoginPage() {
       setError("Please enter both Student ID and PIN")
       return
     }
-    
     setError("")
     setLoading(true)
-    
     try {
       const formattedStudentId = studentId.toUpperCase().trim()
-      
-      // Step 1: Sign in with mapped email and PIN first so we pass security rules
       const mappedEmail = `${formattedStudentId}@me.com`
       const firebasePassword = `${pin}ME`
-      await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
-      
-      // Give Firebase a tiny moment to propagate the auth token to Firestore internally
-      await new Promise(resolve => setTimeout(resolve, 500))
 
-      // Step 2: Now authenticated, fetch student document to check access rules
+      // Sign in (no artificial delay — Firebase token propagates instantly in modern SDK)
+      await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
+
+      // Fetch student document to validate access
       const docRef = doc(db, "students", formattedStudentId)
       const docSnap = await getDoc(docRef)
-      
+
       if (!docSnap.exists()) {
         await auth.signOut()
         throw new Error("Student ID not found.")
       }
-      
+
       const studentData = docSnap.data()
-      
       if (studentData.status === "Inactive") {
         await auth.signOut()
         throw new Error("Your account is inactive. Please contact admin.")
       }
-      
-      // Update lastLogin silently
-      await updateDoc(docRef, { lastLogin: Date.now() })
-      
-      // AuthContext handles redirection
+
+      // Update lastLogin silently (non-blocking)
+      updateDoc(docRef, { lastLogin: Date.now() }).catch(() => {})
+      // AuthContext handles redirect
+
     } catch (err: any) {
-      setError(err.message.replace("Firebase: ", "") || "Invalid Student ID or PIN")
-      // If error is invalid credentials, provide a clearer message
-      if (err.message.includes("auth/invalid-credential")) {
-        setError("Incorrect Student ID or PIN")
+      const msg = err.message?.replace("Firebase: ", "") || "Invalid Student ID or PIN"
+      if (msg.includes("auth/invalid-credential") || msg.includes("auth/wrong-password")) {
+        setError("Incorrect Student ID or PIN. Please try again.")
+      } else {
+        setError(msg)
       }
     } finally {
       setLoading(false)
@@ -93,163 +86,207 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
     setLoading(true)
-    
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      // AuthContext handles redirection
     } catch (err: any) {
-      setError(err.message.replace("Firebase: ", "") || "Invalid credentials")
+      const msg = err.message?.replace("Firebase: ", "") || "Invalid credentials"
+      if (msg.includes("auth/invalid-credential")) {
+        setError("Incorrect email or password.")
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[100px]" />
-      </div>
+    <div className="min-h-screen flex items-center justify-center gradient-bg-hero p-4 relative overflow-hidden">
+      {/* Background orbs */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-400/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-400/10 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md z-10"
+      >
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center bg-primary/10 p-3 rounded-2xl mb-4">
-            <BookOpen className="h-8 w-8 text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-bg mb-4 shadow-xl btn-glow">
+            <BookOpen className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-black text-slate-900">Welcome Back</h1>
-          <p className="text-slate-600 mt-2">Sign in to continue to Mission English</p>
+          <p className="text-slate-500 mt-2">Sign in to Mission English</p>
         </div>
 
-        <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-xl">
-          <CardHeader className="pb-4">
-            {/* Custom Tabs */}
-            <div className="flex p-1 bg-slate-100 rounded-xl mb-4">
-              <button
-                onClick={() => { setRole("student"); setError(""); }}
-                className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                  role === "student" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <GraduationCap className="w-4 h-4" />
-                <span>Student</span>
-              </button>
-              <button
-                onClick={() => { setRole("admin"); setError(""); }}
-                className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                  role === "admin" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <ShieldAlert className="w-4 h-4" />
-                <span>Admin</span>
-              </button>
-            </div>
-            <CardTitle>{role === "student" ? "Student Login" : "Admin Portal"}</CardTitle>
-            <CardDescription>
-              {role === "student" ? "Login with your Student ID and PIN" : "Login with administrator credentials"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Card */}
+        <div className="glass-card rounded-3xl p-8 shadow-2xl">
+          {/* Role Tabs */}
+          <div className="flex p-1 bg-slate-100 rounded-2xl mb-6">
+            <button
+              onClick={() => { setRole("student"); setError("") }}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                role === "student"
+                  ? "bg-white text-blue-600 shadow-md"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              Student
+            </button>
+            <button
+              onClick={() => { setRole("admin"); setError("") }}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                role === "admin"
+                  ? "bg-white text-indigo-600 shadow-md"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Admin
+            </button>
+          </div>
+
+          {/* Error */}
+          <AnimatePresence mode="wait">
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 border border-red-100 font-medium">
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm mb-4 border border-red-100 font-medium"
+              >
                 {error}
-              </div>
+              </motion.div>
             )}
+          </AnimatePresence>
 
-            <AnimatePresence mode="wait">
-              {role === "student" ? (
-                <motion.div
-                  key="student"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <form onSubmit={handleStudentLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="studentId">Student ID</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input
-                          id="studentId"
-                          placeholder="e.g. ME001"
-                          className="pl-9 font-medium uppercase placeholder:normal-case"
-                          value={studentId}
-                          onChange={(e) => setStudentId(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="pin">4-Digit PIN</Label>
-                      <div className="relative">
-                        <KeyRound className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input
-                          id="pin"
-                          type="password"
-                          placeholder="••••"
-                          maxLength={4}
-                          className="pl-9 tracking-[0.2em] font-bold"
-                          value={pin}
-                          onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} // Only numbers
-                          required
-                        />
-                      </div>
-                    </div>
+          {/* Forms */}
+          <AnimatePresence mode="wait">
+            {role === "student" ? (
+              <motion.form
+                key="student"
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 16 }}
+                transition={{ duration: 0.2 }}
+                onSubmit={handleStudentLogin}
+                className="space-y-5"
+              >
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Student ID</Label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="studentId"
+                      placeholder="e.g. ME001"
+                      className="pl-10 h-12 rounded-xl input-premium uppercase placeholder:normal-case font-semibold"
+                      value={studentId}
+                      onChange={(e) => setStudentId(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
 
-                    <Button type="submit" className="w-full mt-2" disabled={loading}>
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                      Login to Dashboard
-                    </Button>
-                  </form>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="admin"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">4-Digit PIN</Label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="pin"
+                      type="password"
+                      placeholder="••••"
+                      maxLength={4}
+                      className="pl-10 h-12 rounded-xl input-premium tracking-[0.3em] font-bold text-center"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 rounded-xl gradient-bg border-0 text-white font-bold text-base btn-glow"
+                  disabled={loading}
                 >
-                  <form onSubmit={handleAdminLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Admin Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="admin@missionenglish.com"
-                          className="pl-9"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white mt-2" disabled={loading}>
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                      Login to Admin Panel
-                    </Button>
-                  </form>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-        </Card>
-      </div>
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  {loading ? "Signing in..." : "Login to Dashboard"}
+                  {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
+                </Button>
+              </motion.form>
+            ) : (
+              <motion.form
+                key="admin"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+                transition={{ duration: 0.2 }}
+                onSubmit={handleAdminLogin}
+                className="space-y-5"
+              >
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Admin Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@missionenglish.com"
+                      className="pl-10 h-12 rounded-xl input-premium"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="pr-10 h-12 rounded-xl input-premium"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 border-0 text-white font-bold text-base"
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                  {loading ? "Signing in..." : "Login to Admin Panel"}
+                  {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
+                </Button>
+              </motion.form>
+            )}
+          </AnimatePresence>
+
+          <p className="text-center text-xs text-slate-400 mt-6">
+            Having trouble? Contact your administrator.
+          </p>
+        </div>
+
+        <p className="text-center text-xs text-slate-400 mt-6">
+          © {new Date().getFullYear()} Mission English. Powered by Pihnexa Technologies.
+        </p>
+      </motion.div>
     </div>
   )
 }

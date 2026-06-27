@@ -17,6 +17,7 @@ export interface StudentProfile {
   paymentStatus: "Paid" | "Pending"
   status: "Active" | "Inactive"
   testUnlocked: boolean
+  unlockedCourses: string[] // array of Firestore course IDs
   createdAt: number
   lastLogin?: number
   role: "student"
@@ -66,7 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const docSnap = await getDoc(docRef)
             
             if (docSnap.exists()) {
-              setProfile({ ...docSnap.data(), role: "student" } as StudentProfile)
+              const data = docSnap.data()
+              setProfile({ 
+                ...data, 
+                role: "student",
+                unlockedCourses: data.unlockedCourses || []
+              } as StudentProfile)
             } else {
               // Fallback if document missing
               setProfile({
@@ -78,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 paymentStatus: "Pending",
                 status: "Active",
                 testUnlocked: false,
+                unlockedCourses: [],
                 createdAt: Date.now(),
                 role: "student"
               })
