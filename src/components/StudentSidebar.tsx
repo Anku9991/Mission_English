@@ -5,22 +5,18 @@ import { usePathname } from "next/navigation"
 import { 
   LayoutDashboard, 
   BookOpen, 
-  GraduationCap, 
   Settings, 
   LogOut,
-  Target,
   Trophy
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth-context"
 
-const STUDENT_LINKS = [
-  { name: "My Dashboard", href: "/student", icon: LayoutDashboard },
-  { name: "My Courses", href: "/student/courses", icon: BookOpen },
-  { name: "Test Series", href: "/student/tests", icon: Target },
+const sidebarLinks = [
+  { name: "Dashboard", href: "/student", icon: LayoutDashboard },
   { name: "My Results", href: "/student/results", icon: Trophy },
-  { name: "Profile", href: "/student/profile", icon: Settings },
+  { name: "Settings", href: "/student/settings", icon: Settings },
 ]
 
 export default function StudentSidebar() {
@@ -28,57 +24,61 @@ export default function StudentSidebar() {
   const { logout, profile } = useAuth()
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0">
+    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen sticky top-0">
       <div className="p-6">
-        <Link href="/" className="flex items-center space-x-2 text-slate-900 mb-8">
-          <div className="bg-primary/10 p-2 rounded-xl">
-            <GraduationCap className="h-6 w-6 text-primary" />
-          </div>
-          <span className="text-xl font-bold tracking-tight">Mission English</span>
+        <Link href="/student" className="flex items-center space-x-3 mb-10">
+          <img src="/logo.png" alt="Mission English" className="w-10 h-10 object-contain bg-white rounded-full p-1" />
+          <span className="text-xl font-bold text-white tracking-tight">Mission English</span>
         </Link>
 
         <nav className="space-y-2">
-          {STUDENT_LINKS.map((link) => {
+          {sidebarLinks.map((link) => {
             const Icon = link.icon
-            const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== '/student')
+            const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`) && link.href !== "/student"
+            const isDashboardActive = pathname === "/student" && link.href === "/student"
+            const active = isActive || isDashboardActive
             
             return (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={cn(
-                  "flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors",
-                  isActive 
-                    ? "bg-blue-50 text-blue-700 font-medium" 
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                )}
-              >
-                <Icon className={cn("h-5 w-5", isActive ? "text-blue-700" : "text-slate-400")} />
-                <span>{link.name}</span>
+              <Link key={link.name} href={link.href}>
+                <span className={cn(
+                  "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  active 
+                    ? "bg-primary text-primary-foreground" 
+                    : "hover:bg-slate-800 hover:text-white"
+                )}>
+                  <Icon className="h-5 w-5" />
+                  <span>{link.name}</span>
+                </span>
               </Link>
             )
           })}
         </nav>
       </div>
 
-      <div className="mt-auto p-6 border-t border-slate-100">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
-            {profile?.phoneNumber?.slice(-2) || 'St'}
+      <div className="mt-auto p-6">
+        <div className="bg-slate-800 rounded-xl p-4 mb-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+              {profile?.name?.[0] || profile?.phoneNumber?.slice(-1) || 'S'}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium text-white truncate">{profile?.name || profile?.phoneNumber || 'Student'}</p>
+              <p className="text-xs text-slate-400">Student</p>
+            </div>
           </div>
-          <div className="overflow-hidden">
-            <p className="text-sm font-medium text-slate-900 truncate">Student User</p>
-            <p className="text-xs text-slate-500 truncate">{profile?.phoneNumber}</p>
-          </div>
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white"
+            onClick={logout}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Log Out
+          </Button>
         </div>
-        <Button 
-          variant="outline" 
-          className="w-full justify-start text-slate-600 border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100"
-          onClick={logout}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Log Out
-        </Button>
+        
+        <div className="text-center text-xs text-slate-500 font-medium">
+          Powered By Pihnexa Technologies
+        </div>
       </div>
     </aside>
   )

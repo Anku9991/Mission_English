@@ -5,11 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react"
 
-const MOCK_PAYMENTS = [
-  { id: "PAY-1001", student: "9876543210", item: "SSC CGL English Tier 1", amount: "₹299", txnId: "312345678901", date: "10 mins ago", status: "pending" },
-  { id: "PAY-1002", student: "8765432109", item: "NDA English Comprehensive", amount: "₹499", txnId: "312399999999", date: "1 hour ago", status: "pending" },
-  { id: "PAY-1003", student: "7654321098", item: "CDS Grammar Rules PDF", amount: "₹99", txnId: "312311111111", date: "2 hours ago", status: "approved" },
-]
+const MOCK_PAYMENTS: any[] = []
 
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState(MOCK_PAYMENTS)

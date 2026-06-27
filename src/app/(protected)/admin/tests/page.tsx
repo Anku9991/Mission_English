@@ -5,11 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Plus, Edit, Trash2, Clock, FileText, PlayCircle, BookOpen } from "lucide-react"
 
-const MOCK_TESTS = [
-  { id: 1, title: "SSC CGL English Tier 1", type: "cbt", price: "₹299", questions: 50, duration: "60 mins" },
-  { id: 2, title: "NDA English Comprehensive", type: "course", price: "₹499", modules: 12, duration: "10 hours" },
-  { id: 3, title: "CDS Grammar Rules PDF", type: "notes", price: "₹99", pages: 120, duration: "N/A" },
-]
+const MOCK_TESTS: any[] = []
 
 export default function TestsPage() {
   return (

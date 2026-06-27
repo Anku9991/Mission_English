@@ -6,11 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Lock, FileText, PlayCircle, Clock } from "lucide-react"
 
-const MOCK_CONTENT = [
-  { id: 1, title: "SSC CGL English Tier 1", type: "cbt", status: "unlocked", questions: 50, duration: "60 mins" },
-  { id: 2, title: "CDS Grammar Rules PDF", type: "notes", status: "unlocked", pages: 120 },
-  { id: 3, title: "NDA English Comprehensive", type: "course", status: "locked", price: "₹499" },
-]
+const MOCK_CONTENT: any[] = []
 
 export default function StudentDashboard() {
   const { profile } = useAuth()

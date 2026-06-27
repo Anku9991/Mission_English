@@ -8,10 +8,10 @@ export default function AdminDashboard() {
   const { profile } = useAuth()
 
   const stats = [
-    { title: "Total Students", value: "1,245", icon: Users, trend: "+12% from last month" },
-    { title: "Active Tests", value: "48", icon: BookOpen, trend: "+4 new this week" },
-    { title: "Total Revenue", value: "₹45,230", icon: CreditCard, trend: "+8% from last month" },
-    { title: "Avg. Accuracy", value: "68%", icon: Activity, trend: "-2% from last month" },
+    { title: "Total Students", value: "0", icon: Users, trend: "No data yet" },
+    { title: "Active Tests", value: "0", icon: BookOpen, trend: "No data yet" },
+    { title: "Total Revenue", value: "₹0", icon: CreditCard, trend: "No data yet" },
+    { title: "Avg. Accuracy", value: "0%", icon: Activity, trend: "No data yet" },
   ]
 
   return (

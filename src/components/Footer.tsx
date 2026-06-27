@@ -17,6 +17,9 @@ export default function Footer() {
             <p className="text-sm text-slate-400 leading-relaxed">
               Empowering students with premium English language education and state-of-the-art Computer Based Testing tools.
             </p>
+            <div className="text-xs font-semibold text-slate-400">
+              Powered By Pihnexa Technologies
+            </div>
           </div>
 
           {/* Quick Links */}
