@@ -50,30 +50,34 @@ export default function LoginPage() {
     try {
       const formattedStudentId = studentId.toUpperCase().trim()
       
-      // Step 1: Pre-fetch student document to check access rules
+      // Step 1: Sign in with mapped email and PIN first so we pass security rules
+      const mappedEmail = `${formattedStudentId}@me.com`
+      const firebasePassword = `${pin}ME`
+      await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
+
+      // Step 2: Now authenticated, fetch student document to check access rules
       const docRef = doc(db, "students", formattedStudentId)
       const docSnap = await getDoc(docRef)
       
       if (!docSnap.exists()) {
+        await auth.signOut()
         throw new Error("Student ID not found.")
       }
       
       const studentData = docSnap.data()
       
       if (studentData.status === "Inactive") {
+        await auth.signOut()
         throw new Error("Your account is inactive. Please contact admin.")
       }
       if (studentData.paymentStatus === "Pending") {
+        await auth.signOut()
         throw new Error("Please complete your payment to continue.")
       }
       if (studentData.testUnlocked === false) {
+        await auth.signOut()
         throw new Error("Your account is awaiting admin approval.")
       }
-
-      // Step 2: Sign in with mapped email and PIN (padded to 6 chars for Firebase Auth rules)
-      const mappedEmail = `${formattedStudentId}@me.com`
-      const firebasePassword = `${pin}ME`
-      await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
       
       // Update lastLogin silently
       await updateDoc(docRef, { lastLogin: Date.now() })
