@@ -25,11 +25,11 @@ export default function StudentSettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input placeholder="Your Name" defaultValue={profile?.name || ""} />
+              <Input placeholder="Your Name" defaultValue={(profile as any)?.fullName || ""} />
             </div>
             <div className="space-y-2">
               <Label>Phone Number</Label>
-              <Input disabled value={profile?.phoneNumber || ""} />
+              <Input disabled value={(profile as any)?.phone || ""} />
               <p className="text-xs text-slate-500">Phone number cannot be changed as it is used for login.</p>
             </div>
             <Button>Save Changes</Button>
