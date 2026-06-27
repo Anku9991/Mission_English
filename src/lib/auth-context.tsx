@@ -46,9 +46,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const docSnap = await getDoc(docRef)
           
           if (docSnap.exists()) {
-            setProfile(docSnap.data() as UserProfile)
+            const data = docSnap.data() as UserProfile;
+            // Auto-fix bug where student was incorrectly assigned admin role
+            if (data.role === 'admin' && firebaseUser.phoneNumber && !firebaseUser.email) {
+              data.role = 'student';
+              await setDoc(docRef, { role: 'student' }, { merge: true });
+            }
+            setProfile(data);
           } else {
-            const isPhoneAuth = firebaseUser.providerData.some(p => p.providerId === 'phone')
+            const isPhoneAuth = firebaseUser.phoneNumber != null || firebaseUser.providerData.some(p => p.providerId === 'phone');
             const role: UserRole = isPhoneAuth ? "student" : "admin"
             
             const userData: any = {
