@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { setPersistence, inMemoryPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCBzlCU4UK82uaOVggVFG48Q0UZYW_Oa2E",
@@ -23,5 +24,6 @@ export const storage = getStorage(app);
 // so the Admin doesn't get logged out
 const secondaryApp = getApps().find(a => a.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
 export const secondaryAuth = getAuth(secondaryApp);
+setPersistence(secondaryAuth, inMemoryPersistence).catch(console.error);
 
 export default app;
