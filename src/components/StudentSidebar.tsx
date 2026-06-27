@@ -27,7 +27,7 @@ export default function StudentSidebar() {
     <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen sticky top-0">
       <div className="p-6">
         <Link href="/student" className="flex items-center space-x-3 mb-10">
-          <img src="/logo.png" alt="Mission English" className="w-10 h-10 object-contain bg-white rounded-full p-1" />
+          <img src="/logo.jpeg" alt="Mission English" className="w-10 h-10 object-contain bg-white rounded-full p-1" />
           <span className="text-xl font-bold text-white tracking-tight">Mission English</span>
         </Link>
 
