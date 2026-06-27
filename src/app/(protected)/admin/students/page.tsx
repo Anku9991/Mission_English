@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from "firebase/firestore"
+import { signInWithEmailAndPassword, updatePassword, signOut } from "firebase/auth"
+import { db, secondaryAuth } from "@/lib/firebase"
 import { StudentProfile } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -56,6 +57,45 @@ export default function AdminStudentsPage() {
     if (confirm(`Are you sure you want to completely delete ${studentId}? This cannot be undone.`)) {
       await deleteDoc(doc(db, "students", studentId))
       await deleteDoc(doc(db, "secure_pins", studentId))
+    }
+  }
+
+  const handleResetPin = async (studentId: string) => {
+    const newPin = prompt(`Enter new 4-digit PIN for ${studentId}:`)
+    if (!newPin || newPin.length !== 4 || isNaN(Number(newPin))) {
+      alert("Invalid PIN. Must be exactly 4 digits.")
+      return
+    }
+    
+    try {
+      // 1. Get Old PIN from secure_pins
+      const pinDoc = await getDoc(doc(db, "secure_pins", studentId))
+      if (!pinDoc.exists()) {
+        alert("Could not find previous PIN securely.")
+        return
+      }
+      const oldPin = pinDoc.data().pin
+      
+      // 2. Authenticate silently with secondary app
+      const mappedEmail = `${studentId.toUpperCase()}@me.com`
+      const userCredential = await signInWithEmailAndPassword(secondaryAuth, mappedEmail, `${oldPin}ME`)
+      
+      // 3. Update password in Firebase Auth
+      await updatePassword(userCredential.user, `${newPin}ME`)
+      
+      // 4. Update the secure_pins collection
+      await updateDoc(doc(db, "secure_pins", studentId), {
+        pin: newPin,
+        updatedAt: Date.now()
+      })
+      
+      // 5. Sign out of secondary app
+      await signOut(secondaryAuth)
+      
+      alert(`PIN successfully updated to: ${newPin}`)
+    } catch (err: any) {
+      console.error(err)
+      alert(`Error updating PIN: ${err.message}`)
     }
   }
 
@@ -175,8 +215,8 @@ export default function AdminStudentsPage() {
                         <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(student.studentId, student.status)} title="Toggle Account Status">
                           {student.status === 'Active' ? <XCircle className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => alert("Edit PIN feature requires Admin Secure Action (Next Update)")} title="Reset PIN">
-                          <KeyRound className="w-4 h-4 text-slate-400" />
+                        <Button variant="ghost" size="sm" onClick={() => handleResetPin(student.studentId)} title="Reset PIN">
+                          <KeyRound className="w-4 h-4 text-blue-500" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(student.studentId)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
                           <Trash2 className="w-4 h-4" />
