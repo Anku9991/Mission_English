@@ -115,7 +115,11 @@ export default function AddStudentPage() {
       
     } catch (err: any) {
       console.error(err)
-      setError(err.message.replace("Firebase: ", "") || "Failed to create student")
+      if (err.message.includes("auth/email-already-in-use")) {
+        setError(`The Student ID "${studentId}" is already taken (possibly from a previous attempt). Please manually change it to the next number (e.g. change 002 to 003).`)
+      } else {
+        setError(err.message.replace("Firebase: ", "") || "Failed to create student")
+      }
     } finally {
       setLoading(false)
     }
