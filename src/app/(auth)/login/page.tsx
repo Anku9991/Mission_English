@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [loadingText, setLoadingText] = useState("")
   const [error, setError] = useState("")
 
   const { user, profile } = useAuth()
@@ -43,6 +44,7 @@ export default function LoginPage() {
     }
     setError("")
     setLoading(true)
+    setLoadingText("Authenticating...")
     try {
       const formattedStudentId = studentId.toUpperCase().trim()
       const mappedEmail = `${formattedStudentId}@me.com`
@@ -51,6 +53,7 @@ export default function LoginPage() {
       // Sign in (no artificial delay — Firebase token propagates instantly in modern SDK)
       await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
 
+      setLoadingText("Loading profile...")
       // Fetch student document to validate access
       const docRef = doc(db, "students", formattedStudentId)
       const docSnap = await getDoc(docRef)
@@ -66,6 +69,7 @@ export default function LoginPage() {
         throw new Error("Your account is inactive. Please contact admin.")
       }
 
+      setLoadingText("Redirecting...")
       // Update lastLogin silently (non-blocking)
       updateDoc(docRef, { lastLogin: Date.now() }).catch(() => {})
       // AuthContext handles redirect
@@ -213,7 +217,7 @@ export default function LoginPage() {
                   disabled={loading}
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  {loading ? "Signing in..." : "Login to Dashboard"}
+                  {loading ? loadingText || "Signing in..." : "Login to Dashboard"}
                   {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
                 </Button>
               </motion.form>

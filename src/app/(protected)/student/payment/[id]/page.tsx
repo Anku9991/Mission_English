@@ -28,6 +28,7 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
   const [submitting, setSubmitting] = useState(false)
   
   const [existingPayment, setExistingPayment] = useState<PaymentRequest | null>(null)
+  const [paymentSettings, setPaymentSettings] = useState<{ upiId: string, merchantName: string, qrUrl: string } | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -38,6 +39,12 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
         if (!docSnap.exists()) throw new Error("Course not found")
         const courseData = { id: docSnap.id, ...docSnap.data() } as Course
         setCourse(courseData)
+
+        // Fetch global payment settings
+        const settingsSnap = await getDoc(doc(db, "settings", "payment"))
+        if (settingsSnap.exists()) {
+          setPaymentSettings(settingsSnap.data() as any)
+        }
 
         // Check if already submitted a pending payment
         const studentProfile = profile as any
@@ -232,23 +239,36 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-8 mb-10 p-6 bg-slate-50 border border-slate-200 rounded-2xl">
-                {/* QR Code Placeholder - In real app, generate from UPI ID dynamically */}
-                <div className="w-48 h-48 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 relative shrink-0">
-                  <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=missionenglish@upi&pn=Mission%20English&am=499" alt="UPI QR Code" width={168} height={168} className="w-full h-full object-contain opacity-50" />
-                  <div className="absolute inset-0 flex items-center justify-center flex-col text-center p-4 bg-white/90 backdrop-blur-[2px] rounded-2xl">
-                    <QrCode className="w-8 h-8 text-slate-400 mb-2" />
-                    <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Demo QR Code</p>
-                  </div>
+                {/* QR Code */}
+                <div className="w-48 h-48 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 relative shrink-0 flex items-center justify-center overflow-hidden">
+                  {paymentSettings?.qrUrl ? (
+                    <img src={paymentSettings.qrUrl} alt="UPI QR Code" className="w-full h-full object-contain" />
+                  ) : paymentSettings?.upiId ? (
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${paymentSettings.upiId}&pn=${encodeURIComponent(paymentSettings.merchantName || 'Mission English')}&am=${course.price}`} 
+                      alt="UPI QR Code" 
+                      className="w-full h-full object-contain" 
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center opacity-50">
+                      <QrCode className="w-8 h-8 text-slate-400 mb-2" />
+                      <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">No QR Configured</p>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-4 w-full">
                   <div>
                     <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">UPI ID</Label>
-                    <div className="font-mono text-lg font-bold text-slate-900 mt-1">missionenglish@upi</div>
+                    <div className="font-mono text-lg font-bold text-slate-900 mt-1">
+                      {paymentSettings?.upiId || "Not configured"}
+                    </div>
                   </div>
                   <div>
                     <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Merchant Name</Label>
-                    <div className="font-semibold text-slate-800 mt-1">Mission English Academy</div>
+                    <div className="font-semibold text-slate-800 mt-1">
+                      {paymentSettings?.merchantName || "Mission English Academy"}
+                    </div>
                   </div>
                   <div className="pt-2 border-t border-slate-200">
                     <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Amount to Pay</Label>

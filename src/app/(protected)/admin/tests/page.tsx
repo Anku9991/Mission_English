@@ -99,9 +99,11 @@ export default function TestsPage() {
                         <Icon className="w-3 h-3" /> {meta.label}
                       </span>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-blue-50 text-blue-500">
-                          <Edit className="h-3.5 w-3.5" />
-                        </Button>
+                        <Link href={`/admin/tests/edit/${course.id}`}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-blue-50 text-blue-500">
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                        </Link>
                         <Button
                           size="icon"
                           variant="ghost"
