@@ -41,26 +41,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (firebaseUser) {
         // Fetch or create user profile in Firestore
-        const docRef = doc(db, "users", firebaseUser.uid)
-        const docSnap = await getDoc(docRef)
-        
-        if (docSnap.exists()) {
-          setProfile(docSnap.data() as UserProfile)
-        } else {
-          // If admin logs in via Email, they should already be in DB manually, 
-          // but if it's a new student via Phone OTP, create them.
-          const isPhoneAuth = firebaseUser.providerData.some(p => p.providerId === 'phone')
-          const role: UserRole = isPhoneAuth ? "student" : "admin"
+        try {
+          const docRef = doc(db, "users", firebaseUser.uid)
+          const docSnap = await getDoc(docRef)
           
-          const newProfile: UserProfile = {
-            uid: firebaseUser.uid,
-            role,
-            phoneNumber: firebaseUser.phoneNumber || undefined,
-            email: firebaseUser.email || undefined,
-            createdAt: Date.now()
+          if (docSnap.exists()) {
+            setProfile(docSnap.data() as UserProfile)
+          } else {
+            const isPhoneAuth = firebaseUser.providerData.some(p => p.providerId === 'phone')
+            const role: UserRole = isPhoneAuth ? "student" : "admin"
+            
+            const newProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              role,
+              phoneNumber: firebaseUser.phoneNumber || undefined,
+              email: firebaseUser.email || undefined,
+              createdAt: Date.now()
+            }
+            await setDoc(docRef, newProfile)
+            setProfile(newProfile)
           }
-          await setDoc(docRef, newProfile)
-          setProfile(newProfile)
+        } catch (error) {
+          console.error("Firebase fetch error:", error);
+          // Fallback profile if offline
+          setProfile({
+            uid: firebaseUser.uid,
+            role: "student",
+            createdAt: Date.now()
+          })
         }
       } else {
         setProfile(null)
