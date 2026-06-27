@@ -86,10 +86,12 @@ export default function StudentDashboard() {
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       ) : courses.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50">
-          <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-600 mb-2">No courses available</h3>
-          <p className="text-slate-400 text-sm">Check back later for new content from instructors.</p>
+        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center shadow-sm">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-md shadow-slate-200/50">
+            <PlayCircle className="w-10 h-10 text-slate-300" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-700 mb-2">No active courses yet</h3>
+          <p className="text-slate-500 max-w-sm mx-auto">Explore the available courses below and unlock them to start your learning journey.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -163,14 +165,14 @@ export default function StudentDashboard() {
                           {unlocking === course.id ? "Unlocking..." : "Unlock for Free"}
                         </Button>
                       ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2 rounded-2xl">
                           <div className="flex-1 text-center">
                             <span className="text-xl font-black text-slate-900 flex items-center justify-center">
                               <IndianRupee className="w-5 h-5" />{course.price}
                             </span>
                           </div>
                           <Link href={`/student/payment/${course.id}`} className="flex-[2]">
-                            <Button className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold gap-2 shadow-md hover:shadow-xl transition-all">
+                            <Button className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold gap-2 shadow-md hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
                               <Lock className="w-4 h-4 text-slate-400" /> Enroll Now
                             </Button>
                           </Link>

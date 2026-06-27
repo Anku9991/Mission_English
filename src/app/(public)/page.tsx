@@ -109,20 +109,19 @@ export default function Home() {
 
           <motion.div
             variants={fadeUp} initial="hidden" animate="visible" custom={3}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link href="/login">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-2xl btn-glow gradient-bg text-white border-0 font-semibold">
-                Start Learning Free
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/courses">
-              <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-2xl border-slate-200 bg-white/80 backdrop-blur-sm hover:bg-white font-semibold">
-                <Play className="mr-2 w-5 h-5 fill-current" />
-                Watch Demo
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <Link href="/login">
+                <Button size="lg" className="h-14 px-10 rounded-2xl gradient-bg border-0 text-white font-bold text-lg shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-1 transition-all duration-300 gap-2">
+                  Get Started <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/courses">
+                <Button size="lg" variant="outline" className="h-14 px-10 rounded-2xl bg-white/50 backdrop-blur-md border-slate-200 text-slate-700 font-bold text-lg hover:bg-white hover:-translate-y-1 transition-all duration-300">
+                  View Courses
+                </Button>
+              </Link>
+            </div>
           </motion.div>
 
           {/* Social Proof */}
@@ -201,13 +200,14 @@ export default function Home() {
                 <motion.div
                   key={i}
                   variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i % 3 * 0.1}
-                  className="glass-card p-8 rounded-3xl group cursor-default"
                 >
-                  <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${f.color} mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="w-6 h-6 text-white" />
+                  <div className="glass-card rounded-3xl p-8 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 border border-slate-200/60 bg-white/70">
+                    <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/20">
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">{f.title}</h3>
+                    <p className="text-slate-600 leading-relaxed text-sm">{f.description}</p>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">{f.title}</h3>
-                  <p className="text-slate-600 leading-relaxed text-sm">{f.description}</p>
                 </motion.div>
               )
             })}
