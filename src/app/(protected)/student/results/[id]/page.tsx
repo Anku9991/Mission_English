@@ -3,9 +3,11 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { use } from "react"
 import { ArrowLeft, Trophy, CheckCircle2, XCircle, MinusCircle, Target } from "lucide-react"
 
-export default function ResultPage({ params }: { params: { id: string } }) {
+export default function ResultPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
   // Mock results data
   const result = {
     testName: "SSC CGL English Tier 1",
@@ -106,7 +108,7 @@ export default function ResultPage({ params }: { params: { id: string } }) {
       </div>
 
       <div className="mt-8">
-        <Link href={`/student/results/${params.id}/review`}>
+        <Link href={`/student/results/${resolvedParams.id}/review`}>
           <Button variant="outline" className="w-full md:w-auto h-12 px-8">
             Review Questions & Answers
           </Button>

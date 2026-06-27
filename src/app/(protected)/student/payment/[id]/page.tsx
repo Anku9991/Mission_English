@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { QrCode, Copy, CheckCircle2, ArrowLeft, ShieldCheck } from "lucide-react"
 
-export default function PaymentPage({ params }: { params: { id: string } }) {
+export default function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
   const [transactionId, setTransactionId] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [copied, setCopied] = useState(false)
