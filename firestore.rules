@@ -12,11 +12,20 @@ service cloud.firestore {
       return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Users Collection
+    // Users Collection (For Admins)
     match /users/{userId} {
-      // Users can read and write their own profile
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
-      // Admins can read and write all users
+      allow read, write: if isAdmin();
+    }
+
+    // Students Collection
+    match /students/{studentId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.uid == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // Secure Pins Collection
+    match /secure_pins/{studentId} {
       allow read, write: if isAdmin();
     }
 
