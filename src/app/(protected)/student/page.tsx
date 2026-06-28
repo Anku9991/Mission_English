@@ -24,7 +24,17 @@ export default function StudentDashboard() {
   const [completedTests, setCompletedTests] = useState<Record<string, string>>({})
 
   const studentProfile = profile?.role === "student" ? profile : null
-  const unlockedIds = studentProfile?.unlockedCourses || []
+  const [unlockedIds, setUnlockedIds] = useState<string[]>(studentProfile?.unlockedCourses || [])
+
+  useEffect(() => {
+    if (!studentProfile?.studentId) return
+    const unsub = onSnapshot(doc(db, "students", studentProfile.studentId), (docSnap) => {
+      if (docSnap.exists()) {
+        setUnlockedIds(docSnap.data().unlockedCourses || [])
+      }
+    })
+    return () => unsub()
+  }, [studentProfile?.studentId])
 
   useEffect(() => {
     // Only fetch published courses
@@ -57,7 +67,7 @@ export default function StudentDashboard() {
       await updateDoc(doc(db, "students", studentProfile.studentId), {
         unlockedCourses: arrayUnion(courseId)
       })
-      // Local state updates automatically via auth context snapshot listener
+      // The real-time listener will instantly catch this and update unlockedIds
     } catch (err: any) {
       alert("Error unlocking course: " + err.message)
     } finally {
