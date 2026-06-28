@@ -58,8 +58,8 @@ service cloud.firestore {
       // Users can read and create their own results
       allow create: if isAuthenticated();
       allow read: if isAuthenticated();
-      // Admins can view all results
-      allow read: if isAdmin();
+      // Admins can view and update (publish) all results
+      allow read, update, delete: if isAdmin();
     }
   }
 }
