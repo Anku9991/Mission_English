@@ -57,8 +57,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser)
       
       if (firebaseUser) {
+        // FAST PATH: Load from cache instantly to bypass "Authenticating..." screen
+        const cachedProfile = localStorage.getItem(`me_profile_${firebaseUser.uid}`)
+        if (cachedProfile) {
+          try {
+            setProfile(JSON.parse(cachedProfile))
+            setLoading(false) // INSTANT UNBLOCK!
+          } catch (e) {
+            // ignore JSON parse errors
+          }
+        }
+        
         try {
           const isStudentEmail = firebaseUser.email?.endsWith("@me.com")
+          let finalProfile: UserProfile | null = null;
           
           if (isStudentEmail) {
             // Student Profile Flow
@@ -68,14 +80,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             if (docSnap.exists()) {
               const data = docSnap.data()
-              setProfile({ 
+              finalProfile = { 
                 ...data, 
                 role: "student",
                 unlockedCourses: data.unlockedCourses || []
-              } as StudentProfile)
+              } as StudentProfile
             } else {
               // Fallback if document missing
-              setProfile({
+              finalProfile = {
                 studentId,
                 fullName: "Student",
                 phone: "",
@@ -87,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 unlockedCourses: [],
                 createdAt: Date.now(),
                 role: "student"
-              })
+              }
             }
           } else {
             // Admin Profile Flow
@@ -95,17 +107,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const docSnap = await getDoc(docRef)
             
             if (docSnap.exists()) {
-              setProfile({ ...docSnap.data(), role: "admin" } as AdminProfile)
+              finalProfile = { ...docSnap.data(), role: "admin" } as AdminProfile
             } else {
-              const newAdmin: AdminProfile = {
+              finalProfile = {
                 uid: firebaseUser.uid,
                 role: "admin",
                 email: firebaseUser.email || undefined,
                 createdAt: Date.now()
               }
-              await setDoc(docRef, newAdmin)
-              setProfile(newAdmin)
+              await setDoc(docRef, finalProfile)
             }
+          }
+
+          if (finalProfile) {
+            setProfile(finalProfile)
+            localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
           }
         } catch (error) {
           console.error("Firebase fetch error:", error);
@@ -120,6 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = async () => {
+    if (user) {
+      localStorage.removeItem(`me_profile_${user.uid}`)
+    }
     await signOut(auth)
   }
 
