@@ -31,14 +31,17 @@ export default function AdminSidebar() {
   const { logout, profile } = useAuth()
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen sticky top-0">
+    <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shadow-sm z-40">
       <div className="p-6">
-        <Link href="/admin" className="flex items-center space-x-3 mb-10">
-          <Image src="/logo.jpeg" alt="Mission English" width={40} height={40} className="object-contain bg-white rounded-full p-1" />
-          <span className="text-xl font-bold text-white tracking-tight">Mission Admin</span>
+        <Link href="/admin" className="flex items-center space-x-3 mb-8 px-2">
+          <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-md">
+            <BookOpen className="text-white w-6 h-6" />
+          </div>
+          <span className="text-xl font-black text-slate-900 tracking-tight">Mission Admin</span>
         </Link>
 
-        <nav className="space-y-2">
+        <nav className="space-y-1.5">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2 mt-8">Main Menu</div>
           {sidebarLinks.map((link) => {
             const Icon = link.icon
             const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
@@ -46,13 +49,19 @@ export default function AdminSidebar() {
             return (
               <Link key={link.name} href={link.href}>
                 <span className={cn(
-                  "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group",
                   isActive 
-                    ? "bg-primary text-primary-foreground" 
-                    : "hover:bg-slate-800 hover:text-white"
+                    ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100" 
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                 )}>
-                  <Icon className="h-5 w-5" />
+                  <Icon className={cn(
+                    "h-5 w-5 transition-colors", 
+                    isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-indigo-500"
+                  )} />
                   <span>{link.name}</span>
+                  {isActive && (
+                    <div className="ml-auto w-1.5 h-5 rounded-full bg-indigo-600" />
+                  )}
                 </span>
               </Link>
             )
@@ -61,19 +70,19 @@ export default function AdminSidebar() {
       </div>
 
       <div className="mt-auto p-6">
-        <div className="bg-slate-800 rounded-xl p-4 mb-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-              A
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 shadow-sm">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-white font-bold shadow-md">
+              {profile?.email?.[0].toUpperCase() || 'A'}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">{profile?.email || 'Admin'}</p>
-              <p className="text-xs text-slate-400">Administrator</p>
+            <div className="overflow-hidden flex-1">
+              <p className="text-sm font-bold text-slate-900 truncate">{profile?.email || 'Admin'}</p>
+              <p className="text-xs text-slate-500 font-medium">Administrator</p>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white"
+            className="w-full justify-center text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-red-600 transition-colors rounded-xl font-bold h-10"
             onClick={logout}
           >
             <LogOut className="h-4 w-4 mr-2" />
@@ -81,8 +90,8 @@ export default function AdminSidebar() {
           </Button>
         </div>
         
-        <div className="text-center text-xs text-slate-500 font-medium">
-          Powered By Pihnexa Technologies
+        <div className="text-center text-[10px] text-slate-400 font-bold tracking-widest uppercase">
+          Powered By Pihnexa
         </div>
       </div>
     </aside>

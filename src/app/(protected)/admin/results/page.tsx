@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Loader2, FileText, CheckCircle2, ShieldAlert } from "lucide-react"
 import type { CBTResult } from "@/types"
+import { motion } from "framer-motion"
 
 export default function AdminResultsPage() {
   const [results, setResults] = useState<CBTResult[]>([])
@@ -51,19 +52,20 @@ export default function AdminResultsPage() {
           <p className="text-slate-400 text-sm">When students complete a CBT test, their results will appear here.</p>
         </div>
       ) : (
-        <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
-                  <th className="p-4 pl-6">Student</th>
-                  <th className="p-4">Test Name</th>
-                  <th className="p-4">Score</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4 pr-6 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <Card className="premium-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse table-premium">
+                <thead>
+                  <tr>
+                    <th className="pl-8">Student</th>
+                    <th>Test Name</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th className="pr-8 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
                 {results.map((r) => (
                   <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-4 pl-6">
@@ -107,6 +109,7 @@ export default function AdminResultsPage() {
             </table>
           </div>
         </Card>
+      </motion.div>
       )}
     </div>
   )

@@ -8,7 +8,8 @@ import {
   LayoutDashboard, 
   Settings, 
   LogOut,
-  Trophy
+  Trophy,
+  GraduationCap
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -26,14 +27,17 @@ export default function StudentSidebar() {
   const studentProfile = profile?.role === 'student' ? profile : null;
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen sticky top-0">
+    <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shadow-sm z-40">
       <div className="p-6">
-        <Link href="/student" className="flex items-center space-x-3 mb-10">
-          <Image src="/logo.jpeg" alt="Mission English" width={40} height={40} className="object-contain bg-white rounded-full p-1" />
-          <span className="text-xl font-bold text-white tracking-tight">Mission English</span>
+        <Link href="/student" className="flex items-center space-x-3 mb-8 px-2">
+          <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-md">
+            <GraduationCap className="text-white w-6 h-6" />
+          </div>
+          <span className="text-xl font-black text-slate-900 tracking-tight">Mission English</span>
         </Link>
 
-        <nav className="space-y-2">
+        <nav className="space-y-1.5">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2 mt-8">My Learning</div>
           {sidebarLinks.map((link) => {
             const Icon = link.icon
             const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`) && link.href !== "/student"
@@ -43,13 +47,19 @@ export default function StudentSidebar() {
             return (
               <Link key={link.name} href={link.href}>
                 <span className={cn(
-                  "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group",
                   active 
-                    ? "bg-primary text-primary-foreground" 
-                    : "hover:bg-slate-800 hover:text-white"
+                    ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100" 
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                 )}>
-                  <Icon className="h-5 w-5" />
+                  <Icon className={cn(
+                    "h-5 w-5 transition-colors", 
+                    active ? "text-indigo-600" : "text-slate-400 group-hover:text-indigo-500"
+                  )} />
                   <span>{link.name}</span>
+                  {active && (
+                    <div className="ml-auto w-1.5 h-5 rounded-full bg-indigo-600" />
+                  )}
                 </span>
               </Link>
             )
@@ -58,19 +68,19 @@ export default function StudentSidebar() {
       </div>
 
       <div className="mt-auto p-6">
-        <div className="bg-slate-800 rounded-xl p-4 mb-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="h-10 w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 shadow-sm">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-white font-bold shadow-md">
               {studentProfile?.fullName?.[0] || studentProfile?.phone?.slice(-1) || 'S'}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">{studentProfile?.fullName || studentProfile?.phone || 'Student'}</p>
-              <p className="text-xs text-slate-400">Student</p>
+            <div className="overflow-hidden flex-1">
+              <p className="text-sm font-bold text-slate-900 truncate">{studentProfile?.fullName || studentProfile?.phone || 'Student'}</p>
+              <p className="text-xs text-slate-500 font-medium">Student</p>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white"
+            className="w-full justify-center text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-red-600 transition-colors rounded-xl font-bold h-10"
             onClick={logout}
           >
             <LogOut className="h-4 w-4 mr-2" />
@@ -78,8 +88,8 @@ export default function StudentSidebar() {
           </Button>
         </div>
         
-        <div className="text-center text-xs text-slate-500 font-medium">
-          Powered By Pihnexa Technologies
+        <div className="text-center text-[10px] text-slate-400 font-bold tracking-widest uppercase">
+          Powered By Pihnexa
         </div>
       </div>
     </aside>
