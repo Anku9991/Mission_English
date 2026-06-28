@@ -6,7 +6,7 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import { Loader2, AlertCircle, Clock, Save, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react"
+import { Loader2, AlertCircle, Clock, Save, ChevronRight, ChevronLeft, CheckCircle2, Maximize, Minimize } from "lucide-react"
 import type { Course, Question, CBTResult } from "@/types"
 
 export default function CBTTestPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,11 +22,39 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
   const [started, setStarted] = useState(false)
   const [currentIdx, setCurrentIdx] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
+  const [reviewMarks, setReviewMarks] = useState<Record<number, boolean>>({})
   const [submitting, setSubmitting] = useState(false)
   const [startTime, setStartTime] = useState<number>(0)
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(0)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Load saved state on start
+  useEffect(() => {
+    if (started) {
+      const savedAnswers = localStorage.getItem(`cbt_answers_${courseId}`)
+      if (savedAnswers) setAnswers(JSON.parse(savedAnswers))
+      
+      const savedMarks = localStorage.getItem(`cbt_marks_${courseId}`)
+      if (savedMarks) setReviewMarks(JSON.parse(savedMarks))
+      
+      const savedTime = localStorage.getItem(`cbt_time_${courseId}`)
+      if (savedTime && parseInt(savedTime) > 0) {
+        // Only use saved time if it's less than the course duration to prevent bugs
+        setTimeLeft(parseInt(savedTime))
+      }
+    }
+  }, [started, courseId])
+
+  // Save state on change
+  useEffect(() => {
+    if (started && !submitting) {
+      localStorage.setItem(`cbt_answers_${courseId}`, JSON.stringify(answers))
+      localStorage.setItem(`cbt_marks_${courseId}`, JSON.stringify(reviewMarks))
+      localStorage.setItem(`cbt_time_${courseId}`, timeLeft.toString())
+    }
+  }, [answers, reviewMarks, timeLeft, started, submitting, courseId])
 
   useEffect(() => {
     async function loadTest() {
@@ -84,6 +112,18 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
     setAnswers(prev => ({ ...prev, [currentIdx]: opt }))
   }
 
+  const handleClearResponse = () => {
+    setAnswers(prev => {
+      const newAnswers = { ...prev }
+      delete newAnswers[currentIdx]
+      return newAnswers
+    })
+  }
+
+  const toggleReview = () => {
+    setReviewMarks(prev => ({ ...prev, [currentIdx]: !prev[currentIdx] }))
+  }
+
   const handleSubmit = async () => {
     if (!course || !profile || submitting) return
     setSubmitting(true)
@@ -129,10 +169,31 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
 
     try {
       const docRef = await addDoc(collection(db, "results"), result)
+      // Clear local storage
+      localStorage.removeItem(`cbt_answers_${courseId}`)
+      localStorage.removeItem(`cbt_marks_${courseId}`)
+      localStorage.removeItem(`cbt_time_${courseId}`)
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(console.error)
+      }
       router.replace(`/student/results/${docRef.id}`)
     } catch (err: any) {
       alert("Error saving result: " + err.message)
       setSubmitting(false)
+    }
+  }
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen()
+        setIsFullscreen(true)
+      } else {
+        await document.exitFullscreen()
+        setIsFullscreen(false)
+      }
+    } catch (err) {
+      console.error("Fullscreen error:", err)
     }
   }
 
@@ -194,11 +255,22 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
       <div className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="font-bold text-slate-800 truncate pr-4">{course.title}</h1>
-          <div className="flex items-center gap-6 shrink-0">
+          <div className="flex items-center gap-4 sm:gap-6 shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleFullscreen}
+              className="text-slate-500 hover:text-slate-700 hidden sm:flex"
+              title="Toggle Fullscreen"
+            >
+              {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+            </Button>
+            
             <div className={`flex items-center gap-2 font-mono text-xl font-bold ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-slate-800'}`}>
               <Clock className="w-5 h-5" />
               {formatTime(timeLeft)}
             </div>
+            
             <Button 
               onClick={() => { if(confirm("Submit test early?")) handleSubmit() }}
               disabled={submitting}
@@ -256,29 +328,48 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
 
-          <div className="flex justify-between items-center mt-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setCurrentIdx(p => Math.max(0, p - 1))}
-              disabled={currentIdx === 0}
-              className="rounded-xl px-6 h-12 bg-white border-slate-200 hover:bg-slate-50 font-bold gap-2"
-            >
-              <ChevronLeft className="w-5 h-5" /> Previous
-            </Button>
+          <div className="flex flex-wrap justify-between items-center mt-6 gap-4">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentIdx(p => Math.max(0, p - 1))}
+                disabled={currentIdx === 0}
+                className="rounded-xl px-5 h-11 bg-white border-slate-200 hover:bg-slate-50 font-bold gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" /> Prev
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleClearResponse}
+                disabled={!answers[currentIdx]}
+                className="rounded-xl px-4 h-11 bg-white border-slate-200 hover:bg-red-50 hover:text-red-600 font-bold"
+              >
+                Clear
+              </Button>
+            </div>
             
-            <Button 
-              onClick={() => {
-                if (currentIdx === course.questions!.length - 1) {
-                  if (confirm("This is the last question. Submit test?")) handleSubmit()
-                } else {
-                  setCurrentIdx(p => p + 1)
-                }
-              }}
-              className="rounded-xl px-8 h-12 gradient-bg border-0 text-white font-bold gap-2 btn-glow"
-            >
-              {currentIdx === course.questions!.length - 1 ? "Save & Submit" : "Next Question"}
-              <ChevronRight className="w-5 h-5" />
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={toggleReview}
+                className={`rounded-xl px-4 h-11 font-bold ${reviewMarks[currentIdx] ? 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200' : 'bg-white border-slate-200 hover:bg-purple-50 hover:text-purple-600'}`}
+              >
+                {reviewMarks[currentIdx] ? "Unmark Review" : "Mark Review"}
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (currentIdx === course.questions!.length - 1) {
+                    if (confirm("This is the last question. Submit test?")) handleSubmit()
+                  } else {
+                    setCurrentIdx(p => p + 1)
+                  }
+                }}
+                className="rounded-xl px-6 h-11 gradient-bg border-0 text-white font-bold gap-2 btn-glow"
+              >
+                {currentIdx === course.questions!.length - 1 ? "Save & Submit" : "Save & Next"}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -291,12 +382,14 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
               {course.questions.map((_, i) => {
                 const isAnswered = answers[i] !== undefined
                 const isCurrent = currentIdx === i
+                const isReview = reviewMarks[i]
                 return (
                   <button
                     key={i}
                     onClick={() => setCurrentIdx(i)}
                     className={`aspect-square rounded-lg flex items-center justify-center text-sm font-bold border-2 transition-all ${
                       isCurrent ? "border-blue-500 bg-white text-blue-600 shadow-md scale-110 z-10" :
+                      isReview ? "bg-purple-100 border-purple-300 text-purple-700" :
                       isAnswered ? "bg-emerald-100 border-emerald-200 text-emerald-700" :
                       "bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300"
                     }`}
@@ -311,6 +404,10 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 rounded bg-emerald-100 border border-emerald-200" />
                 <span className="text-slate-600">Answered ({Object.keys(answers).length})</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 rounded bg-purple-100 border border-purple-300" />
+                <span className="text-slate-600">Marked Review ({Object.values(reviewMarks).filter(Boolean).length})</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 rounded bg-slate-50 border border-slate-200" />
