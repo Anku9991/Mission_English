@@ -47,17 +47,17 @@ service cloud.firestore {
     // Payment Requests Collection
     match /payment_requests/{paymentId} {
       // Users can create and read their own payments
-      allow create: if isAuthenticated();
-      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.token.email == (request.resource.data.studentId.lower() + '@me.com');
+      allow read: if isAuthenticated() && request.auth.token.email == (resource.data.studentId.lower() + '@me.com');
       // Admins can read and update (approve/reject) all payments
       allow read, update: if isAdmin();
     }
 
     // Results Collection
     match /results/{resultId} {
-      // Users can read and create their own results
-      allow create: if isAuthenticated();
-      allow read: if isAuthenticated();
+      // Users can create and read their own results
+      allow create: if isAuthenticated() && request.auth.token.email == (request.resource.data.studentId.lower() + '@me.com');
+      allow read: if isAuthenticated() && request.auth.token.email == (resource.data.studentId.lower() + '@me.com');
       // Admins can view and update (publish) all results
       allow read, update, delete: if isAdmin();
     }
