@@ -135,13 +135,13 @@ export default function AdminPaymentsPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         {/* Status badge */}
                         {p.status === "pending" && (
-                          <span className="badge-warning"><Clock className="w-3 h-3 mr-1" /> Pending</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"><Clock className="w-3 h-3 mr-1" /> Pending</span>
                         )}
                         {p.status === "approved" && (
-                          <span className="badge-success"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</span>
                         )}
                         {p.status === "rejected" && (
-                          <span className="badge-error"><XCircle className="w-3 h-3 mr-1" /> Rejected</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200"><XCircle className="w-3 h-3 mr-1" /> Rejected</span>
                         )}
                         <span className="font-bold text-slate-900 text-lg flex items-center gap-0.5">
                           <IndianRupee className="w-4 h-4" />{p.amount}
