@@ -49,6 +49,11 @@ export default function AdminStudentsPage() {
     await updateDoc(doc(db, "students", studentId), { status: newStatus })
   }
 
+  const handleTogglePayment = async (studentId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "Paid" ? "Pending" : "Paid"
+    await updateDoc(doc(db, "students", studentId), { paymentStatus: newStatus })
+  }
+
   const handleToggleTestAccess = async (studentId: string, currentAccess: boolean) => {
     await updateDoc(doc(db, "students", studentId), { testUnlocked: !currentAccess })
   }
@@ -194,11 +199,15 @@ export default function AdminStudentsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        student.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
+                      <button 
+                        onClick={() => handleTogglePayment(student.studentId, student.paymentStatus)}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold transition-colors cursor-pointer hover:shadow-sm ${
+                          student.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                        }`}
+                        title="Click to toggle Payment Status"
+                      >
                         {student.paymentStatus}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-6 py-4">
                       {student.testUnlocked ? (
