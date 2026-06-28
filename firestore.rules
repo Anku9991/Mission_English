@@ -59,5 +59,13 @@ service cloud.firestore {
       // Admins can view and update (publish) all results
       allow read, update, delete: if isAdmin();
     }
+
+    // Settings Collection
+    match /settings/{settingId} {
+      // Anyone authenticated can read global settings (like payment UPI details)
+      allow read: if isAuthenticated();
+      // Only admins can update settings
+      allow write: if isAdmin();
+    }
   }
 }
