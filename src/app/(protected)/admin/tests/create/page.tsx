@@ -76,7 +76,7 @@ export default function CreateTestPage() {
               C: cols[3],
               D: cols[4]
             },
-            correct: cols[5].toUpperCase().replace(/[^A-D]/g, '') || 'A',
+            correct: (cols[5].toUpperCase().replace(/[^A-D]/g, '') || 'A') as "A" | "B" | "C" | "D",
             marks: cols.length >= 7 ? Number(cols[6]) : 2
           })
         }

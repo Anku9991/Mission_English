@@ -202,7 +202,11 @@ export default function AddStudentPage() {
               </div>
             </CardContent>
           </Card>
-
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Enrollment Details</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Course Enrollment</Label>
