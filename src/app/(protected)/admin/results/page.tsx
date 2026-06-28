@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { collection, query, orderBy, onSnapshot, doc, updateDoc } from "firebase/firestore"
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, FileText, CheckCircle2, ShieldAlert } from "lucide-react"
+import { Loader2, FileText, CheckCircle2, ShieldAlert, Trash2 } from "lucide-react"
 import type { CBTResult } from "@/types"
 import { motion } from "framer-motion"
 
@@ -31,6 +31,18 @@ export default function AdminResultsPage() {
       })
     } catch (err: any) {
       alert("Error updating result status: " + err.message)
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  const handleDeleteResult = async (resultId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this result? This will allow the student to retake the test. This action cannot be undone.")) return
+    setUpdating(resultId)
+    try {
+      await deleteDoc(doc(db, "results", resultId))
+    } catch (err: any) {
+      alert("Error deleting result: " + err.message)
     } finally {
       setUpdating(null)
     }
@@ -93,15 +105,26 @@ export default function AdminResultsPage() {
                       )}
                     </td>
                     <td className="p-4 pr-6 text-right">
-                      <Button
-                        onClick={() => handlePublishToggle(r.id, !!r.isPublished)}
-                        disabled={updating === r.id}
-                        variant={r.isPublished ? "outline" : "default"}
-                        className={`h-9 rounded-xl text-xs font-bold px-4 ${!r.isPublished ? "gradient-bg border-0 text-white shadow-md btn-glow" : ""}`}
-                      >
-                        {updating === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 
-                         r.isPublished ? "Unpublish" : "Publish Result"}
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          onClick={() => handlePublishToggle(r.id, !!r.isPublished)}
+                          disabled={updating === r.id}
+                          variant={r.isPublished ? "outline" : "default"}
+                          className={`h-9 rounded-xl text-xs font-bold px-4 ${!r.isPublished ? "gradient-bg border-0 text-white shadow-md btn-glow" : ""}`}
+                        >
+                          {updating === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 
+                           r.isPublished ? "Unpublish" : "Publish Result"}
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteResult(r.id)}
+                          disabled={updating === r.id}
+                          variant="ghost"
+                          className="h-9 w-9 p-0 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50"
+                          title="Delete Result (Allow Retake)"
+                        >
+                          {updating === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
