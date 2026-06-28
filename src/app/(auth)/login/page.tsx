@@ -118,9 +118,11 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-bg mb-4 shadow-xl btn-glow">
-            <BookOpen className="w-8 h-8 text-white" />
-          </div>
+          <img 
+            src="/logo.jpeg" 
+            alt="Mission English" 
+            className="h-20 w-auto mx-auto mb-4 rounded-xl shadow-lg object-contain bg-white p-2" 
+          />
           <h1 className="text-3xl font-black text-slate-900">Welcome Back</h1>
           <p className="text-slate-500 mt-2">Sign in to Mission English</p>
         </div>

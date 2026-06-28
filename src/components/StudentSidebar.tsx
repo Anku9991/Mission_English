@@ -31,9 +31,9 @@ export default function StudentSidebar() {
       <div className="p-6">
         <Link href="/student" className="flex items-center mb-8 px-2 group">
           <img 
-            src="https://placehold.co/400x120/ffffff/1e293b?text=Mission+English" 
+            src="/logo.jpeg" 
             alt="Mission English Logo" 
-            className="w-full h-auto rounded-xl shadow-sm border border-slate-200 group-hover:shadow-md transition-shadow" 
+            className="w-auto h-12 object-contain" 
           />
         </Link>
 
