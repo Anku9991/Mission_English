@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ArrowLeft, Plus, Save, Trash2, GripVertical, UploadCloud, FileText, PlayCircle, Loader2, Wand2, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, Plus, Save, Trash2, GripVertical, UploadCloud, FileText, PlayCircle, Loader2, Wand2, CheckCircle2, Upload } from "lucide-react"
 import type { Question, Module, Lesson } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
+import { useRef } from "react"
 
 export default function CreateTestPage() {
   const router = useRouter()
@@ -25,6 +26,71 @@ export default function CreateTestPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // CSV Parser
+  const parseCSVRow = (str: string) => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+      if (char === '"' && str[i+1] === '"') {
+        current += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const text = event.target?.result as string
+      if (!text) return
+      
+      const rows = text.split('\n').filter(r => r.trim() !== '')
+      const startIndex = rows[0].toLowerCase().includes('question') ? 1 : 0
+      
+      const newQuestions: Question[] = []
+      for (let i = startIndex; i < rows.length; i++) {
+        const cols = parseCSVRow(rows[i])
+        if (cols.length >= 6) {
+          newQuestions.push({
+            id: Date.now().toString() + i,
+            text: cols[0],
+            options: {
+              A: cols[1],
+              B: cols[2],
+              C: cols[3],
+              D: cols[4]
+            },
+            correct: cols[5].toUpperCase().replace(/[^A-D]/g, '') || 'A',
+            marks: cols.length >= 7 ? Number(cols[6]) : 2
+          })
+        }
+      }
+      if (newQuestions.length > 0) {
+        setQuestions(prev => [...prev, ...newQuestions])
+        alert(`Successfully imported ${newQuestions.length} questions!`)
+      } else {
+        alert("Could not parse CSV. Please ensure format: Question, OptA, OptB, OptC, OptD, CorrectAns(A/B/C/D), Marks")
+      }
+    }
+    reader.readAsText(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   // CBT Handlers
   const addQuestion = () => {
@@ -200,6 +266,12 @@ export default function CreateTestPage() {
                     {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                     {isGenerating ? "Generating..." : "Auto-Generate"}
                   </Button>
+                  
+                  <input type="file" accept=".csv" className="hidden" ref={fileInputRef} onChange={handleCSVUpload} />
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 rounded-xl text-xs h-9 border-slate-200">
+                    <Upload className="w-3 h-3" /> Upload CSV
+                  </Button>
+
                   <Button onClick={addQuestion} className="gap-2 rounded-xl text-xs h-9">
                     <Plus className="w-3 h-3" /> Add Q
                   </Button>
@@ -210,7 +282,11 @@ export default function CreateTestPage() {
                   <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl">
                     <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                     <p className="font-semibold text-slate-600 text-sm">No questions yet</p>
-                    <p className="text-slate-400 text-xs mt-1">Click "Add Q" or use Auto-Generate</p>
+                    <p className="text-slate-400 text-xs mt-1 mb-4">Click "Add Q", use Auto-Generate, or upload a CSV file.</p>
+                    <div className="bg-slate-50 p-4 rounded-xl text-left text-xs text-slate-500 max-w-sm mx-auto border border-slate-100">
+                      <strong className="block text-slate-700 mb-1">CSV Format Required:</strong>
+                      Question, OptionA, OptionB, OptionC, OptionD, CorrectAnswer(A/B/C/D), Marks
+                    </div>
                   </div>
                 ) : (
                   <AnimatePresence>
