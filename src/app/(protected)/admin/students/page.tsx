@@ -140,8 +140,8 @@ export default function AdminStudentsPage() {
       </Card>
 
       {filteredStudents.length === 0 ? (
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-16 flex flex-col items-center justify-center text-center bg-slate-50 rounded-xl">
+        <Card className="premium-card">
+          <CardContent className="p-16 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-3xl">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
               <Users className="w-8 h-8 text-slate-300" />
             </div>
@@ -155,20 +155,20 @@ export default function AdminStudentsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <Card className="premium-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-500 uppercase text-xs font-semibold border-b">
+            <table className="w-full text-left border-collapse table-premium">
+              <thead>
                 <tr>
-                  <th className="px-6 py-4">Student</th>
-                  <th className="px-6 py-4">Course & Batch</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Payment</th>
-                  <th className="px-6 py-4">Tests</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="pl-6">Student</th>
+                  <th>Course & Batch</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th>Tests</th>
+                  <th className="pr-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-50">
                 {filteredStudents.map((student) => (
                   <tr key={student.studentId} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
@@ -228,7 +228,7 @@ export default function AdminStudentsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )
