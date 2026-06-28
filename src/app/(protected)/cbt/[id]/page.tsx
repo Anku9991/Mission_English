@@ -91,10 +91,22 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
     // Calculate score
     let score = 0
     let totalMarks = 0
+    let correctCount = 0
+    let wrongCount = 0
+    
     course.questions!.forEach((q, i) => {
       totalMarks += q.marks || 1
-      if (answers[i] === q.correct) score += q.marks || 1
+      if (answers[i] === q.correct) {
+        score += q.marks || 1
+        correctCount++
+      } else if (answers[i] !== undefined) {
+        wrongCount++
+      }
     })
+
+    const totalQuestions = course.questions!.length
+    const skippedCount = totalQuestions - correctCount - wrongCount
+    const accuracy = totalQuestions > 0 ? Math.round((correctCount / (correctCount + wrongCount || 1)) * 100) : 0
 
     const studentProfile = profile as any
     const result: Omit<CBTResult, "id"> = {
@@ -105,7 +117,11 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
       answers,
       score,
       totalMarks,
-      totalQuestions: course.questions!.length,
+      totalQuestions,
+      correctCount,
+      wrongCount,
+      skippedCount,
+      accuracy,
       submittedAt: Date.now(),
       timeTaken: Math.floor((Date.now() - startTime) / 1000),
       isPublished: false

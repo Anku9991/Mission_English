@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react"
 import Link from "next/link"
-import { doc, getDoc } from "firebase/firestore"
+import { doc, onSnapshot } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -18,20 +18,20 @@ export default function ResultPage({ params }: { params: Promise<{ id: string }>
   const [error, setError] = useState("")
 
   useEffect(() => {
-    async function fetchResult() {
-      try {
-        const docSnap = await getDoc(doc(db, "results", resultId))
-        if (!docSnap.exists()) {
-          throw new Error("Result not found")
-        }
+    const unsub = onSnapshot(doc(db, "results", resultId), (docSnap) => {
+      if (docSnap.exists()) {
         setResult({ id: docSnap.id, ...docSnap.data() } as CBTResult)
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
+        setError("")
+      } else {
+        setError("Result not found")
       }
-    }
-    fetchResult()
+      setLoading(false)
+    }, (err) => {
+      setError(err.message)
+      setLoading(false)
+    })
+    
+    return () => unsub()
   }, [resultId])
 
   if (loading) {
@@ -81,13 +81,11 @@ export default function ResultPage({ params }: { params: Promise<{ id: string }>
 
   // Published State - Real Data Calculation
   const totalQuestions = result.totalQuestions || 1
-  const attempted = Object.keys(result.answers || {}).length
-  const skipped = totalQuestions - attempted
+  const attempted = result.correctCount + result.wrongCount
+  const skipped = result.skippedCount || 0
   const marksObtained = result.score || 0
   const totalMarks = result.totalMarks || 1
-  
-  // Calculate correct/incorrect based on score vs attempted (Note: full breakdown requires checking against course document, but we can estimate or just show the score for now if we didn't save the exact breakdown. Wait, we didn't save `correctCount` in CBTResult. We only saved `score`, `totalMarks`, `answers`. We can calculate accuracy as marksObtained / totalMarks. Let's just show standard stats).
-  const accuracy = Math.round((marksObtained / totalMarks) * 100)
+  const accuracy = result.accuracy || 0
   
   return (
     <div className="max-w-5xl mx-auto pt-4 pb-20 px-4">
@@ -144,11 +142,21 @@ export default function ResultPage({ params }: { params: Promise<{ id: string }>
 
         <Card className="border-0 shadow-sm rounded-2xl hover:-translate-y-1 transition-transform">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Attempted</CardTitle>
-            <Target className="w-5 h-5 text-indigo-500" />
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Correct</CardTitle>
+            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-slate-900">{attempted}</div>
+            <div className="text-3xl font-black text-slate-900">{result.correctCount || 0}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm rounded-2xl hover:-translate-y-1 transition-transform">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Incorrect</CardTitle>
+            <XCircle className="w-5 h-5 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-black text-slate-900">{result.wrongCount || 0}</div>
           </CardContent>
         </Card>
 

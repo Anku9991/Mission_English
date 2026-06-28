@@ -66,6 +66,10 @@ export interface CBTResult {
   score: number
   totalMarks: number
   totalQuestions: number
+  correctCount: number
+  wrongCount: number
+  skippedCount: number
+  accuracy: number
   submittedAt: number
   timeTaken: number // seconds
   isPublished?: boolean
