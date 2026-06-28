@@ -62,7 +62,7 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
       const newQuestions: Question[] = []
       for (let i = startIndex; i < rows.length; i++) {
         const cols = parseCSVRow(rows[i])
-        if (cols.length >= 6) {
+        if (cols.length >= 6 && cols[0].trim() !== '') {
           newQuestions.push({
             id: Date.now().toString() + i,
             text: cols[0],
