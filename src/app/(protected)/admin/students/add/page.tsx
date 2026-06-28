@@ -26,9 +26,6 @@ export default function AddStudentPage() {
   const [pin, setPin] = useState("")
   const [course, setCourse] = useState("SSC CGL Tier 1")
   const [batch, setBatch] = useState("Morning Batch")
-  const [paymentStatus, setPaymentStatus] = useState<"Paid" | "Pending">("Pending")
-  const [status, setStatus] = useState<"Active" | "Inactive">("Active")
-  const [testUnlocked, setTestUnlocked] = useState<boolean>(false)
 
   // Auto-generate ID and PIN on load
   useEffect(() => {
@@ -93,9 +90,10 @@ export default function AddStudentPage() {
         email: email || "",
         course,
         batch,
-        paymentStatus,
-        status,
-        testUnlocked,
+        paymentStatus: "Pending",
+        status: "Active",
+        testUnlocked: false,
+        unlockedCourses: [],
         createdAt: Date.now(),
         role: "student"
       }
@@ -205,60 +203,22 @@ export default function AddStudentPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle>Enrollment & Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Course</Label>
-                <select 
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                  value={course} onChange={e => setCourse(e.target.value)}
-                >
-                  <option value="SSC CGL Tier 1">SSC CGL Tier 1</option>
-                  <option value="NDA Complete English">NDA Complete English</option>
-                  <option value="CDS Grammar">CDS Grammar</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Batch</Label>
-                <Input value={batch} onChange={e => setBatch(e.target.value)} placeholder="e.g. Morning Batch" />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Payment</Label>
+                  <Label>Course Enrollment</Label>
                   <select 
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={paymentStatus} onChange={e => setPaymentStatus(e.target.value as any)}
+                    value={course} onChange={e => setCourse(e.target.value)}
                   >
-                    <option value="Paid">Paid</option>
-                    <option value="Pending">Pending</option>
+                    <option value="SSC CGL Tier 1">SSC CGL Tier 1</option>
+                    <option value="NDA Complete English">NDA Complete English</option>
+                    <option value="CDS Grammar">CDS Grammar</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Account Status</Label>
-                  <select 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={status} onChange={e => setStatus(e.target.value as any)}
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                  <Label>Batch</Label>
+                  <Input value={batch} onChange={e => setBatch(e.target.value)} placeholder="e.g. Morning Batch" />
                 </div>
-              </div>
-
-              <div className="space-y-2 pt-2">
-                <Label>Test Access</Label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={testUnlocked ? "Unlocked" : "Locked"} 
-                  onChange={e => setTestUnlocked(e.target.value === "Unlocked")}
-                >
-                  <option value="Unlocked">Unlocked (Can take tests)</option>
-                  <option value="Locked">Locked (Awaiting Approval)</option>
-                </select>
               </div>
             </CardContent>
           </Card>
