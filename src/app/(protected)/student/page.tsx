@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion } from "firebase/firestore"
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,10 @@ export default function StudentDashboard() {
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [unlocking, setUnlocking] = useState<string | null>(null)
+  const [completedTests, setCompletedTests] = useState<Record<string, string>>({})
+
+  const studentProfile = profile?.role === "student" ? profile : null
+  const unlockedIds = studentProfile?.unlockedCourses || []
 
   useEffect(() => {
     // Only fetch published courses
@@ -32,8 +36,19 @@ export default function StudentDashboard() {
     return () => unsub()
   }, [])
 
-  const studentProfile = profile?.role === "student" ? profile : null
-  const unlockedIds = studentProfile?.unlockedCourses || []
+  useEffect(() => {
+    if (!studentProfile?.studentId) return
+    const q = query(collection(db, "results"), where("studentId", "==", studentProfile.studentId))
+    const unsub = onSnapshot(q, snap => {
+      const map: Record<string, string> = {}
+      snap.docs.forEach(d => {
+        const data = d.data()
+        map[data.courseId] = d.id
+      })
+      setCompletedTests(map)
+    })
+    return () => unsub()
+  }, [studentProfile?.studentId])
 
   const handleFreeUnlock = async (courseId: string) => {
     if (!studentProfile) return
@@ -101,6 +116,7 @@ export default function StudentDashboard() {
               const Icon = meta.icon
               const isUnlocked = unlockedIds.includes(course.id)
               const isFree = course.price === 0
+              const completedResultId = completedTests[course.id]
 
               return (
                 <motion.div
@@ -149,12 +165,21 @@ export default function StudentDashboard() {
                     {/* Action Area */}
                     <div className="mt-auto">
                       {isUnlocked ? (
-                        <Link href={course.type === "cbt" ? `/cbt/${course.id}` : `/student/course/${course.id}`}>
-                          <Button className="w-full h-12 rounded-xl gradient-bg border-0 text-white font-bold text-base btn-glow gap-2 group-hover:scale-[1.02] transition-transform">
-                            {course.type === "cbt" ? "Start Test" : "View Content"}
-                            <ArrowRight className="w-4 h-4" />
-                          </Button>
-                        </Link>
+                        course.type === "cbt" && completedResultId ? (
+                          <Link href={`/student/results/${completedResultId}`}>
+                            <Button className="w-full h-12 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-bold text-base gap-2 group-hover:scale-[1.02] transition-transform shadow-sm">
+                              View Result
+                              <ArrowRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Link href={course.type === "cbt" ? `/cbt/${course.id}` : `/student/course/${course.id}`}>
+                            <Button className="w-full h-12 rounded-xl gradient-bg border-0 text-white font-bold text-base btn-glow gap-2 group-hover:scale-[1.02] transition-transform">
+                              {course.type === "cbt" ? "Start Test" : "View Content"}
+                              <ArrowRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        )
                       ) : isFree ? (
                         <Button 
                           onClick={() => handleFreeUnlock(course.id)}

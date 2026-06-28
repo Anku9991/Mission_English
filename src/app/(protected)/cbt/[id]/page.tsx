@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react"
 import { useRouter } from "next/navigation"
-import { doc, getDoc, collection, addDoc } from "firebase/firestore"
+import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
@@ -37,11 +37,21 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
         if (data.type !== "cbt") throw new Error("This is not a CBT test")
         if (!data.questions || data.questions.length === 0) throw new Error("Test contains no questions")
         
-        // Security: Check if student has unlocked it
         const studentProfile = profile?.role === "student" ? profile : null
         if (!studentProfile) throw new Error("Not authorized")
         if (data.price > 0 && !studentProfile.unlockedCourses.includes(data.id)) {
           throw new Error("You must unlock this test first")
+        }
+
+        // Security: Check if student has already completed this test
+        const resultsRef = collection(db, "results")
+        const q = query(resultsRef, where("studentId", "==", studentProfile.studentId))
+        const existingResults = await getDocs(q)
+        
+        const testResult = existingResults.docs.find(d => d.data().courseId === courseId)
+        if (testResult) {
+          router.replace(`/student/results/${testResult.id}`)
+          return // Stop execution
         }
 
         setCourse(data)
