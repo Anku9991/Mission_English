@@ -11,7 +11,9 @@ import {
   Settings, 
   LogOut,
   CreditCard,
-  FileBarChart
+  FileBarChart,
+  Menu,
+  X
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -29,9 +31,37 @@ const sidebarLinks = [
 export default function AdminSidebar() {
   const pathname = usePathname()
   const { logout, profile } = useAuth()
+  const [isOpen, setIsOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
 
   return (
-    <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shadow-sm z-40">
+    <>
+      {/* Mobile Top Bar */}
+      <div className="md:hidden flex items-center justify-between bg-white border-b border-slate-200 p-4 sticky top-0 z-40 shadow-sm w-full">
+        <Link href="/admin" className="flex items-center">
+          <img src="/logo.jpeg" alt="Mission English Logo" className="h-8 object-contain" />
+        </Link>
+        <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200">
+          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Sidebar Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm transition-opacity" 
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Content */}
+      <aside className={cn(
+        "w-72 bg-white border-r border-slate-200 flex flex-col h-screen fixed md:sticky top-0 shadow-sm z-50 transition-transform duration-300",
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
       <div className="p-6">
         <Link href="/admin" className="flex items-center mb-8 px-2 group">
           <img 
@@ -95,6 +125,7 @@ export default function AdminSidebar() {
           Powered By Pihnexa
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }
