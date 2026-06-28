@@ -33,11 +33,12 @@ export default function AdminSidebar() {
   return (
     <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shadow-sm z-40">
       <div className="p-6">
-        <Link href="/admin" className="flex items-center space-x-3 mb-8 px-2">
-          <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-md">
-            <BookOpen className="text-white w-6 h-6" />
-          </div>
-          <span className="text-xl font-black text-slate-900 tracking-tight">Mission Admin</span>
+        <Link href="/admin" className="flex items-center mb-8 px-2 group">
+          <img 
+            src="https://placehold.co/400x120/ffffff/1e293b?text=Mission+English" 
+            alt="Mission English Logo" 
+            className="w-full h-auto rounded-xl shadow-sm border border-slate-200 group-hover:shadow-md transition-shadow" 
+          />
         </Link>
 
         <nav className="space-y-1.5">
