@@ -133,6 +133,7 @@ export default function AdminPaymentsPage() {
              `❌ Rejected (${payments.filter(p => p.status === "rejected").length})`}
           </button>
         ))}
+        </div>
       </div>
 
       {loading ? (
