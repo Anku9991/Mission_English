@@ -38,6 +38,7 @@ interface AuthContextType {
   profile: UserProfile | null
   loading: boolean
   logout: () => Promise<void>
+  optimisticLogin: (user: User, profile: UserProfile) => void
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -45,6 +46,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   logout: async () => {},
+  optimisticLogin: () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -142,8 +144,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth)
   }
 
+  const optimisticLogin = (newUser: User, newProfile: UserProfile) => {
+    setUser(newUser)
+    setProfile(newProfile)
+    setLoading(false)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, logout }}>
+    <AuthContext.Provider value={{ user, profile, loading, logout, optimisticLogin }}>
       {children}
     </AuthContext.Provider>
   )

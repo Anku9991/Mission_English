@@ -26,7 +26,7 @@ export default function LoginPage() {
   const [loadingText, setLoadingText] = useState("")
   const [error, setError] = useState("")
 
-  const { user, profile } = useAuth()
+  const { user, profile, optimisticLogin } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -71,6 +71,9 @@ export default function LoginPage() {
       // Update lastLogin silently in background
       updateDoc(doc(db, "students", formattedStudentId), { lastLogin: Date.now() }).catch(() => {})
       
+      // Force sync state update
+      optimisticLogin(cred.user, optimisticProfile as any)
+      
       // Navigate instantly
       router.push("/student")
 
@@ -101,6 +104,7 @@ export default function LoginPage() {
       }
       localStorage.setItem(`me_profile_${cred.user.uid}`, JSON.stringify(optimisticProfile))
       
+      optimisticLogin(cred.user, optimisticProfile as any)
       router.push("/admin")
     } catch (err: any) {
       const msg = err.message?.replace("Firebase: ", "") || "Invalid credentials"
