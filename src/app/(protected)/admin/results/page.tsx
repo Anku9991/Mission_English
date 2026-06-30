@@ -5,7 +5,8 @@ import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } fro
 import { db } from "@/lib/firebase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, FileText, CheckCircle2, ShieldAlert, Trash2 } from "lucide-react"
+import { Loader2, FileText, CheckCircle2, ShieldAlert, Trash2, Eye } from "lucide-react"
+import Link from "next/link"
 import type { CBTResult } from "@/types"
 import { motion } from "framer-motion"
 
@@ -115,6 +116,15 @@ export default function AdminResultsPage() {
                           {updating === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 
                            r.isPublished ? "Unpublish" : "Publish Result"}
                         </Button>
+                        <Link href={`/admin/results/${r.id}`}>
+                          <Button
+                            variant="outline"
+                            className="h-9 w-9 p-0 rounded-xl text-blue-600 border-blue-200 hover:bg-blue-50"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </Link>
                         <Button
                           onClick={() => handleDeleteResult(r.id)}
                           disabled={updating === r.id}

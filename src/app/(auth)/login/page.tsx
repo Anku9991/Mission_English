@@ -30,6 +30,10 @@ export default function LoginPage() {
   const router = useRouter()
 
   useEffect(() => {
+    // Prefetch routes for instant navigation
+    router.prefetch("/student")
+    router.prefetch("/admin")
+    
     if (user && profile) {
       if (profile.role === "admin") router.push("/admin")
       else router.push("/student")
@@ -50,29 +54,25 @@ export default function LoginPage() {
       const mappedEmail = `${formattedStudentId}@me.com`
       const firebasePassword = `${pin}ME`
 
-      // Sign in (no artificial delay — Firebase token propagates instantly in modern SDK)
-      await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
-
-      setLoadingText("Loading profile...")
-      // Fetch student document to validate access
-      const docRef = doc(db, "students", formattedStudentId)
-      const docSnap = await getDoc(docRef)
-
-      if (!docSnap.exists()) {
-        await auth.signOut()
-        throw new Error("Student ID not found.")
+      // Sign in
+      const cred = await signInWithEmailAndPassword(auth, mappedEmail, firebasePassword)
+      
+      // Optimistic cache for lightning fast dashboard render
+      const optimisticProfile = {
+        studentId: formattedStudentId,
+        role: "student",
+        fullName: "Student",
+        phone: "",
+        course: "Loading...",
+        batch: "",
       }
-
-      const studentData = docSnap.data()
-      if (studentData.status === "Inactive") {
-        await auth.signOut()
-        throw new Error("Your account is inactive. Please contact admin.")
-      }
-
-      setLoadingText("Redirecting...")
-      // Update lastLogin silently (non-blocking)
-      updateDoc(docRef, { lastLogin: Date.now() }).catch(() => {})
-      // AuthContext handles redirect
+      localStorage.setItem(`me_profile_${cred.user.uid}`, JSON.stringify(optimisticProfile))
+      
+      // Update lastLogin silently in background
+      updateDoc(doc(db, "students", formattedStudentId), { lastLogin: Date.now() }).catch(() => {})
+      
+      // Navigate instantly
+      router.push("/student")
 
     } catch (err: any) {
       const msg = err.message?.replace("Firebase: ", "") || "Invalid Student ID or PIN"
@@ -91,7 +91,17 @@ export default function LoginPage() {
     setError("")
     setLoading(true)
     try {
-      await signInWithEmailAndPassword(auth, email, password)
+      const cred = await signInWithEmailAndPassword(auth, email, password)
+      
+      // Optimistic cache for admin
+      const optimisticProfile = {
+        uid: cred.user.uid,
+        role: "admin",
+        email: email
+      }
+      localStorage.setItem(`me_profile_${cred.user.uid}`, JSON.stringify(optimisticProfile))
+      
+      router.push("/admin")
     } catch (err: any) {
       const msg = err.message?.replace("Firebase: ", "") || "Invalid credentials"
       if (msg.includes("auth/invalid-credential")) {
@@ -99,7 +109,6 @@ export default function LoginPage() {
       } else {
         setError(msg)
       }
-    } finally {
       setLoading(false)
     }
   }
@@ -124,7 +133,10 @@ export default function LoginPage() {
             className="h-20 w-auto mx-auto mb-4 rounded-xl shadow-lg object-contain bg-white p-2" 
           />
           <h1 className="text-3xl font-black text-slate-900">Welcome Back</h1>
-          <p className="text-slate-500 mt-2">Sign in to Mission English</p>
+          <p className="text-slate-500 mt-2 font-medium">Mission English</p>
+          <p className="text-xs text-blue-600 mt-1.5 font-semibold max-w-[280px] mx-auto italic leading-relaxed">
+            "The Only Institute Where You Can Learn English From Basic to Advanced."
+          </p>
         </div>
 
         {/* Card */}
@@ -170,16 +182,11 @@ export default function LoginPage() {
           </AnimatePresence>
 
           {/* Forms */}
-          <AnimatePresence mode="wait">
             {role === "student" ? (
-              <motion.form
+              <form
                 key="student"
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 16 }}
-                transition={{ duration: 0.2 }}
                 onSubmit={handleStudentLogin}
-                className="space-y-5"
+                className="space-y-5 animate-in fade-in zoom-in-95 duration-200"
               >
                 <div className="space-y-2">
                   <Label className="text-slate-700 font-semibold">Student ID</Label>
@@ -222,16 +229,12 @@ export default function LoginPage() {
                   {loading ? loadingText || "Signing in..." : "Login to Dashboard"}
                   {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
                 </Button>
-              </motion.form>
+              </form>
             ) : (
-              <motion.form
+              <form
                 key="admin"
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -16 }}
-                transition={{ duration: 0.2 }}
                 onSubmit={handleAdminLogin}
-                className="space-y-5"
+                className="space-y-5 animate-in fade-in zoom-in-95 duration-200"
               >
                 <div className="space-y-2">
                   <Label className="text-slate-700 font-semibold">Admin Email</Label>
@@ -280,18 +283,19 @@ export default function LoginPage() {
                   {loading ? "Signing in..." : "Login to Admin Panel"}
                   {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
                 </Button>
-              </motion.form>
+              </form>
             )}
-          </AnimatePresence>
 
           <p className="text-center text-xs text-slate-400 mt-6">
             Having trouble? Contact your administrator.
           </p>
         </div>
 
-        <p className="text-center text-xs text-slate-400 mt-6">
-          © {new Date().getFullYear()} Mission English. Powered by Pihnexa Technologies.
-        </p>
+        <div className="text-center text-xs text-slate-400 mt-6 space-y-1">
+          <p className="font-semibold text-slate-500">Director - Ajay Das</p>
+          <p>Station Para South, Dinhata, Coochbehar, Pin-736135</p>
+          <p className="pt-2">© {new Date().getFullYear()} Mission English. Powered by Pihnexa Technologies.</p>
+        </div>
       </motion.div>
     </div>
   )

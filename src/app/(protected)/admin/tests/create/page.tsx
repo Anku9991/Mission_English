@@ -147,7 +147,9 @@ export default function CreateTestPage() {
         isPublished: true,
         createdAt: Date.now(),
       }
+      
       if (type === "cbt") data.questions = questions
+      
       if (type === "course") data.modules = modules
 
       await addDoc(collection(db, "courses"), data)

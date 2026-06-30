@@ -2,26 +2,39 @@
 
 import { useEffect, useState, use } from "react"
 import Link from "next/link"
-import { doc, onSnapshot } from "firebase/firestore"
+import { doc, getDoc, onSnapshot } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Trophy, CheckCircle2, XCircle, MinusCircle, Target, Loader2, Clock, ShieldAlert } from "lucide-react"
-import type { CBTResult } from "@/types"
+import type { CBTResult, Course } from "@/types"
+import { TestReview } from "@/components/cbt/TestReview"
 
 export default function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params)
   const resultId = resolvedParams.id
   
   const [result, setResult] = useState<CBTResult | null>(null)
+  const [course, setCourse] = useState<Course | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "results", resultId), (docSnap) => {
+    const unsub = onSnapshot(doc(db, "results", resultId), async (docSnap) => {
       if (docSnap.exists()) {
-        setResult({ id: docSnap.id, ...docSnap.data() } as CBTResult)
+        const resultData = { id: docSnap.id, ...docSnap.data() } as CBTResult
+        setResult(resultData)
         setError("")
+
+        // Fetch course to get questions
+        try {
+          const courseSnap = await getDoc(doc(db, "courses", resultData.courseId))
+          if (courseSnap.exists()) {
+            setCourse({ id: courseSnap.id, ...courseSnap.data() } as Course)
+          }
+        } catch (err: any) {
+          console.error("Error fetching course questions:", err.message)
+        }
       } else {
         setError("Result not found")
       }
@@ -170,6 +183,11 @@ export default function ResultPage({ params }: { params: Promise<{ id: string }>
           </CardContent>
         </Card>
       </div>
+
+      {/* Detailed Review Section */}
+      {course && course.questions && (
+        <TestReview questions={course.questions} answers={result.answers} />
+      )}
     </div>
   )
 }

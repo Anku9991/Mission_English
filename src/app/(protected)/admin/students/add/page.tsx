@@ -24,7 +24,7 @@ export default function AddStudentPage() {
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [pin, setPin] = useState("")
-  const [course, setCourse] = useState("SSC CGL Tier 1")
+  const [course, setCourse] = useState("SSC CGL")
   const [batch, setBatch] = useState("Morning Batch")
 
   // Auto-generate ID and PIN on load
@@ -214,9 +214,15 @@ export default function AddStudentPage() {
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={course} onChange={e => setCourse(e.target.value)}
                   >
-                    <option value="SSC CGL Tier 1">SSC CGL Tier 1</option>
-                    <option value="NDA Complete English">NDA Complete English</option>
-                    <option value="CDS Grammar">CDS Grammar</option>
+                    <option value="SSC CGL">SSC CGL</option>
+                    <option value="SSC CHSL">SSC CHSL</option>
+                    <option value="SSC MTS">SSC MTS</option>
+                    <option value="WBP">WBP (West Bengal Police)</option>
+                    <option value="Bank PO/Clerk">Bank PO/Clerk</option>
+                    <option value="NDA">NDA Complete English</option>
+                    <option value="CDS">CDS Grammar</option>
+                    <option value="WBPSC Clerkship">WBPSC Clerkship</option>
+                    <option value="Primary TET">Primary TET</option>
                   </select>
                 </div>
                 <div className="space-y-2">

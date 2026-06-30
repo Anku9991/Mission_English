@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import PwaRegister from "@/components/PwaRegister";
 
 export const metadata: Metadata = {
   title: "Mission English — Master English with Confidence",
@@ -11,6 +12,17 @@ export const metadata: Metadata = {
     description: "Advanced Computer Based Testing for English mastery",
     type: "website",
   },
+  manifest: "/manifest.json",
+  icons: {
+    apple: "/logo.jpeg",
+  }
+};
+
+export const viewport = {
+  themeColor: "#2563eb",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -32,6 +44,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <PwaRegister />
       </body>
     </html>
   );

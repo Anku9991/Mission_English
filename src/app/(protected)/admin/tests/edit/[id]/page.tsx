@@ -109,7 +109,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
         setDescription(data.description || "")
         setPrice(data.price)
         setDuration(data.duration || "")
+        
         if (data.questions) setQuestions(data.questions)
+
         if (data.modules) setModules(data.modules)
 
         // 2. Check if any payments exist for this course
@@ -155,7 +157,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
         price: Number(price),
         duration,
       }
+      
       if (type === "cbt") data.questions = questions
+      
       if (type === "course") data.modules = modules
 
       await updateDoc(doc(db, "courses", courseId), data)

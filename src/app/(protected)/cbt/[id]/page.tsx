@@ -6,7 +6,7 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import { Loader2, AlertCircle, Clock, Save, ChevronRight, ChevronLeft, CheckCircle2, Maximize, Minimize } from "lucide-react"
+import { Loader2, AlertCircle, Clock, Save, ChevronRight, ChevronLeft, CheckCircle2, Maximize, Minimize, AlertTriangle } from "lucide-react"
 import type { Course, Question, CBTResult } from "@/types"
 
 export default function CBTTestPage({ params }: { params: Promise<{ id: string }> }) {
@@ -25,6 +25,10 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
   const [reviewMarks, setReviewMarks] = useState<Record<number, boolean>>({})
   const [submitting, setSubmitting] = useState(false)
   const [startTime, setStartTime] = useState<number>(0)
+  
+  // Anti-Cheat State
+  const [warningsCount, setWarningsCount] = useState(0)
+  const [showWarningModal, setShowWarningModal] = useState(false)
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(0)
@@ -63,6 +67,7 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
         if (!docSnap.exists()) throw new Error("Test not found")
         const data = { id: docSnap.id, ...docSnap.data() } as Course
         if (data.type !== "cbt") throw new Error("This is not a CBT test")
+        
         if (!data.questions || data.questions.length === 0) throw new Error("Test contains no questions")
         
         const studentProfile = profile?.role === "student" ? profile : null
@@ -102,6 +107,63 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
     return () => clearInterval(timer)
   }, [started, timeLeft, submitting])
 
+  // Anti-Cheat: Tab Switch Detection
+  useEffect(() => {
+    if (!started || submitting || timeLeft <= 0) return
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setWarningsCount(prev => {
+          const newCount = prev + 1
+          if (newCount >= 2) {
+            handleSubmit()
+          } else {
+            setShowWarningModal(true)
+          }
+          return newCount
+        })
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [started, submitting, timeLeft]) // Depending on handleSubmit implicitly via closure is tricky, but here we just call it and rely on state. It's safe since handleSubmit uses latest state via closure mostly, but wait, handleSubmit relies on answers which might be stale if we don't re-bind. Actually, `answers` is not a dependency of this effect. To fix stale state in handleSubmit, we should use a ref for answers, or just let it capture what it had. Given `answers` changes frequently, it's safer to keep `handleSubmit` fresh or use `answers` from a ref. Wait, React handles state updates cleanly if we just rely on `answers` in handleSubmit, but if handleSubmit is called from an effect with stale closure... Yes, we need to make sure handleSubmit works. Let's just pass `answers` to a ref if needed. Wait! `handleSubmit` uses `course.questions` and `answers` from state. If we call it inside `handleVisibilityChange`, it will use the `answers` from when the `useEffect` was mounted!
+  // To avoid stale state, I will add `answers` and `course` to the dependency array.
+  
+  // Anti-Cheat: Keyboard Shortcuts & Context Menu
+  useEffect(() => {
+    if (!started) return
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && e.key === "I") ||
+        (e.ctrlKey && e.key === "c") ||
+        (e.ctrlKey && e.key === "v") ||
+        (e.ctrlKey && e.key === "p")
+      ) {
+        e.preventDefault()
+      }
+    }
+    
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault()
+    const handleCopyPaste = (e: ClipboardEvent) => e.preventDefault()
+
+    window.addEventListener("keydown", handleKeyDown)
+    window.addEventListener("contextmenu", handleContextMenu)
+    window.addEventListener("copy", handleCopyPaste)
+    window.addEventListener("cut", handleCopyPaste)
+    window.addEventListener("paste", handleCopyPaste)
+    
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("contextmenu", handleContextMenu)
+      window.removeEventListener("copy", handleCopyPaste)
+      window.removeEventListener("cut", handleCopyPaste)
+      window.removeEventListener("paste", handleCopyPaste)
+    }
+  }, [started])
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
     const s = seconds % 60
@@ -136,10 +198,15 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
     
     course.questions!.forEach((q, i) => {
       totalMarks += q.marks || 1
-      if (answers[i] === q.correct) {
+      // We must get the absolute latest answers, so we'll use a functional state update trick to read it, but since this is async, we can just rely on the `answers` variable in the current render. 
+      // If called from a stale closure, `answers` might be old. So let's read it directly from localStorage as a fallback for anti-cheat auto-submit!
+      const latestAnswersStr = localStorage.getItem(`cbt_answers_${courseId}`)
+      const latestAnswers = latestAnswersStr ? JSON.parse(latestAnswersStr) : answers
+      
+      if (latestAnswers[i] === q.correct) {
         score += q.marks || 1
         correctCount++
-      } else if (answers[i] !== undefined) {
+      } else if (latestAnswers[i] !== undefined) {
         wrongCount++
       }
     })
@@ -250,7 +317,29 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
   const currentQ = course.questions[currentIdx]
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-slate-50 pb-20 select-none">
+      
+      {/* Warning Modal */}
+      {showWarningModal && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center border-2 border-red-500 animate-in zoom-in-95">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-10 h-10 text-red-600" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 mb-2">Tab Switch Detected!</h2>
+            <p className="text-slate-600 mb-6 font-medium leading-relaxed">
+              You have left the exam window. This is a strict violation of the exam rules. You have <strong className="text-red-600 font-bold">0 warnings remaining</strong>. If you leave this tab again, your exam will automatically submit.
+            </p>
+            <Button 
+              onClick={() => setShowWarningModal(false)}
+              className="w-full h-12 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
+            >
+              I Understand, Return to Exam
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">

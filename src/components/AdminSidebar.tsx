@@ -121,8 +121,16 @@ export default function AdminSidebar() {
           </Button>
         </div>
         
-        <div className="text-center text-[10px] text-slate-400 font-bold tracking-widest uppercase">
-          Powered By Pihnexa
+        <div className="text-center space-y-1.5 mt-2">
+          <p className="text-[10px] text-indigo-600 font-semibold italic leading-snug px-1">"The Only Institute Where You Can Learn English From Basic to Advanced."</p>
+          <div className="text-[10px] text-slate-500 font-medium">
+            <p>Director - Ajay Das</p>
+            <p>Station Para South, Dinhata</p>
+            <p>Coochbehar (736135)</p>
+          </div>
+          <div className="pt-3 text-[9px] text-slate-400 font-bold tracking-widest uppercase border-t border-slate-100 mt-2">
+            Powered By Pihnexa
+          </div>
         </div>
       </div>
       </aside>
