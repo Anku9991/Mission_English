@@ -9,7 +9,7 @@ import type { PaymentRequest } from "@/types"
 import { useAuth } from "@/lib/auth-context"
 
 export default function StudentNotificationPanel() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [payments, setPayments] = useState<PaymentRequest[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -51,7 +51,7 @@ export default function StudentNotificationPanel() {
   }
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !profile || profile.role !== "student") return
 
     if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission()
@@ -59,7 +59,7 @@ export default function StudentNotificationPanel() {
 
     const q = query(
       collection(db, "payment_requests"), 
-      where("studentId", "==", user.uid),
+      where("studentId", "==", (profile as any).studentId),
       orderBy("submittedAt", "desc")
     )
     
