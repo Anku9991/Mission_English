@@ -13,9 +13,48 @@ export default function NotificationPanel() {
   const [processingId, setProcessingId] = useState<string | null>(null)
   
   const panelRef = useRef<HTMLDivElement>(null)
+  const isInitialLoad = useRef(true)
+
+  // Function to play a notification "ting" sound
+  const playNotificationSound = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioContext) return
+      const ctx = new AudioContext()
+      const osc = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+      
+      osc.type = "sine"
+      osc.frequency.setValueAtTime(880, ctx.currentTime) // A5 note
+      gainNode.gain.setValueAtTime(0.1, ctx.currentTime)
+      
+      osc.connect(gainNode)
+      gainNode.connect(ctx.destination)
+      
+      osc.start()
+      osc.stop(ctx.currentTime + 0.15)
+      
+      setTimeout(() => {
+        const osc2 = ctx.createOscillator()
+        const gain2 = ctx.createGain()
+        osc2.frequency.setValueAtTime(1046.50, ctx.currentTime) // C6 note
+        gain2.gain.setValueAtTime(0.1, ctx.currentTime)
+        osc2.connect(gain2)
+        gain2.connect(ctx.destination)
+        osc2.start()
+        osc2.stop(ctx.currentTime + 0.2)
+      }, 200)
+    } catch (e) {
+      console.log("Audio play blocked", e)
+    }
+  }
 
   // Listen to pending payments
   useEffect(() => {
+    // Request permission for system notifications
+    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+      Notification.requestPermission()
+    }
     const q = query(
       collection(db, "payment_requests"), 
       where("status", "==", "pending"),
@@ -24,6 +63,32 @@ export default function NotificationPanel() {
     
     const unsub = onSnapshot(q, snap => {
       setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() } as PaymentRequest)))
+
+      // If it's not the first load, alert the user about new payments!
+      if (!isInitialLoad.current) {
+        snap.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            const data = change.doc.data() as PaymentRequest
+            
+            // 1. Play Sound
+            playNotificationSound()
+
+            // 2. Vibrate phone
+            if (navigator.vibrate) {
+              navigator.vibrate([200, 100, 200])
+            }
+
+            // 3. Show System Notification
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("Mission English: New Payment!", {
+                body: `${data.studentName} paid ₹${data.amount} for ${data.courseTitle}`,
+                icon: "/logo.jpeg"
+              })
+            }
+          }
+        })
+      }
+      isInitialLoad.current = false
     })
     return () => unsub()
   }, [])
