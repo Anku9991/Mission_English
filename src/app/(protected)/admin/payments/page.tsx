@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, addDoc } from "firebase/firestore"
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, addDoc, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, XCircle, Clock, Loader2, IndianRupee, User, BookOpen, Hash, AlertCircle } from "lucide-react"
@@ -13,15 +13,31 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState<string | null>(null)
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending")
+  const [selectedDate, setSelectedDate] = useState<string>("") // YYYY-MM-DD
 
   useEffect(() => {
-    const q = query(collection(db, "payment_requests"), orderBy("submittedAt", "desc"))
+    let q = query(collection(db, "payment_requests"), orderBy("submittedAt", "desc"))
+
+    if (selectedDate) {
+      const start = new Date(selectedDate)
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(selectedDate)
+      end.setHours(23, 59, 59, 999)
+
+      q = query(
+        collection(db, "payment_requests"),
+        where("submittedAt", ">=", start.getTime()),
+        where("submittedAt", "<=", end.getTime()),
+        orderBy("submittedAt", "desc")
+      )
+    }
+
     const unsub = onSnapshot(q, snap => {
       setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() } as PaymentRequest)))
       setLoading(false)
     })
     return () => unsub()
-  }, [])
+  }, [selectedDate])
 
   const handleApprove = async (p: PaymentRequest) => {
     if (!confirm(`Approve payment for "${p.courseTitle}" by ${p.studentName}?`)) return
@@ -82,9 +98,23 @@ export default function AdminPaymentsPage() {
         )}
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {(["pending", "approved", "rejected", "all"] as const).map(f => (
+      {/* Date Filter & Status Tabs */}
+      <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+          <span className="text-sm font-semibold text-slate-500">Date:</span>
+          <input 
+            type="date" 
+            value={selectedDate} 
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="text-sm font-medium outline-none bg-transparent text-slate-700"
+          />
+          {selectedDate && (
+            <button onClick={() => setSelectedDate("")} className="text-xs text-red-500 hover:underline ml-2 font-medium">Clear</button>
+          )}
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          {(["pending", "approved", "rejected", "all"] as const).map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
