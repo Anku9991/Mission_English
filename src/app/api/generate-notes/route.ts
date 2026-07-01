@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 Use clear headings, bullet points, and easy-to-understand language. Make it suitable for students preparing for exams. Do not use markdown that cannot be easily read as plain text, just structure it cleanly.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
