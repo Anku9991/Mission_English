@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: Request) {
   try {
@@ -17,34 +18,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // Initialize the Google Generative AI SDK
+    const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // We use gemini-1.5-flash as it is the fastest and recommended model for standard text generation
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     const prompt = `You are an expert educator. Create comprehensive, well-structured study notes on the following topic: "${topic}". 
 Use clear headings, bullet points, and easy-to-understand language. Make it suitable for students preparing for exams. Do not use markdown that cannot be easily read as plain text, just structure it cleanly.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
-          }
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Gemini API Error:", data);
-      throw new Error(data.error?.message || "Failed to generate from Gemini");
-    }
-
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const generatedText = response.text();
 
     if (!generatedText) {
       throw new Error("No text generated from Gemini");
@@ -55,7 +40,7 @@ Use clear headings, bullet points, and easy-to-understand language. Make it suit
   } catch (error: any) {
     console.error("Error generating notes:", error);
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: error.message || "Failed to communicate with Google AI API" },
       { status: 500 }
     );
   }
