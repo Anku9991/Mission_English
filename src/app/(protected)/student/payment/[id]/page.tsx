@@ -34,30 +34,30 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
     async function loadData() {
       if (!profile) return
       try {
-        // Fetch course
-        const docSnap = await getDoc(doc(db, "courses", courseId))
+        const studentProfile = profile as any
+        
+        // Parallelize all three Firebase network requests for instant loading (fixes 45-60s delay)
+        const [docSnap, settingsSnap, paymentDocs] = await Promise.all([
+          getDoc(doc(db, "courses", courseId)),
+          getDoc(doc(db, "settings", "payment")),
+          getDocs(query(
+            collection(db, "payment_requests"),
+            where("studentId", "==", studentProfile.studentId)
+          ))
+        ])
+
         if (!docSnap.exists()) throw new Error("Course not found")
         const courseData = { id: docSnap.id, ...docSnap.data() } as Course
         setCourse(courseData)
 
-        // Fetch global payment settings
-        const settingsSnap = await getDoc(doc(db, "settings", "payment"))
         if (settingsSnap.exists()) {
           setPaymentSettings(settingsSnap.data() as any)
         }
 
-        // Check if already submitted a pending payment
-        const studentProfile = profile as any
-        const q = query(
-          collection(db, "payment_requests"),
-          where("studentId", "==", studentProfile.studentId),
-          where("courseId", "==", courseId)
-        )
-        const paymentDocs = await getDocs(q)
-        // Find latest pending or approved
+        // Find latest pending or approved for THIS specific course
         const activePayment = paymentDocs.docs
           .map(d => ({ id: d.id, ...d.data() } as PaymentRequest))
-          .find(p => p.status === "pending" || p.status === "approved")
+          .find(p => p.courseId === courseId && (p.status === "pending" || p.status === "approved"))
         
         if (activePayment) {
           setExistingPayment(activePayment)
