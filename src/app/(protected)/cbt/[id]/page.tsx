@@ -51,14 +51,20 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
     }
   }, [started, courseId])
 
-  // Save state on change
+  // Save state on change (debounced or only when answers/marks change)
   useEffect(() => {
     if (started && !submitting) {
       localStorage.setItem(`cbt_answers_${courseId}`, JSON.stringify(answers))
       localStorage.setItem(`cbt_marks_${courseId}`, JSON.stringify(reviewMarks))
+    }
+  }, [answers, reviewMarks, started, submitting, courseId])
+
+  // Save time periodically instead of every second
+  useEffect(() => {
+    if (started && !submitting && timeLeft > 0 && timeLeft % 5 === 0) {
       localStorage.setItem(`cbt_time_${courseId}`, timeLeft.toString())
     }
-  }, [answers, reviewMarks, timeLeft, started, submitting, courseId])
+  }, [timeLeft, started, submitting, courseId])
 
   useEffect(() => {
     async function loadTest() {
@@ -102,10 +108,18 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     if (!started || submitting || timeLeft <= 0) return
-    const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000)
-    if (timeLeft === 1) handleSubmit() // Auto submit when time runs out
+    
+    if (timeLeft === 1) {
+      handleSubmit()
+      return
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1)
+    }, 1000)
+    
     return () => clearInterval(timer)
-  }, [started, timeLeft, submitting])
+  }, [started, submitting]) // removed timeLeft from dependencies
 
   // Anti-Cheat: Tab Switch Detection
   useEffect(() => {
@@ -127,7 +141,7 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [started, submitting, timeLeft]) // Depending on handleSubmit implicitly via closure is tricky, but here we just call it and rely on state. It's safe since handleSubmit uses latest state via closure mostly, but wait, handleSubmit relies on answers which might be stale if we don't re-bind. Actually, `answers` is not a dependency of this effect. To fix stale state in handleSubmit, we should use a ref for answers, or just let it capture what it had. Given `answers` changes frequently, it's safer to keep `handleSubmit` fresh or use `answers` from a ref. Wait, React handles state updates cleanly if we just rely on `answers` in handleSubmit, but if handleSubmit is called from an effect with stale closure... Yes, we need to make sure handleSubmit works. Let's just pass `answers` to a ref if needed. Wait! `handleSubmit` uses `course.questions` and `answers` from state. If we call it inside `handleVisibilityChange`, it will use the `answers` from when the `useEffect` was mounted!
+  }, [started, submitting])
   // To avoid stale state, I will add `answers` and `course` to the dependency array.
   
   // Anti-Cheat: Keyboard Shortcuts & Context Menu
