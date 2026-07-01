@@ -122,7 +122,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (finalProfile) {
-            setProfile(finalProfile)
+            setProfile(prev => {
+              // Prevent unnecessary re-renders if data hasn't actually changed
+              if (JSON.stringify(prev) === JSON.stringify(finalProfile)) {
+                return prev;
+              }
+              return finalProfile;
+            });
             localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
           }
         } catch (error) {

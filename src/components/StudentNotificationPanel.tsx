@@ -22,6 +22,12 @@ export default function StudentNotificationPanel() {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext
       if (!AudioContext) return
       const ctx = new AudioContext()
+      
+      // Handle browser autoplay policy which suspends AudioContext until user interaction
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {})
+      }
+
       const osc = ctx.createOscillator()
       const gainNode = ctx.createGain()
       
