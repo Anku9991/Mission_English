@@ -137,7 +137,7 @@ export default function NotificationPanel() {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 md:top-6 md:right-8" ref={panelRef}>
+    <div className="fixed top-3 right-16 z-50 md:top-6 md:right-8" ref={panelRef}>
       {/* Bell Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}

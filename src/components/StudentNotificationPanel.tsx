@@ -108,7 +108,7 @@ export default function StudentNotificationPanel() {
   if (!user) return null
 
   return (
-    <div className="fixed top-4 right-4 z-50 md:top-6 md:right-8" ref={panelRef}>
+    <div className="fixed top-3 right-16 z-50 md:top-6 md:right-8" ref={panelRef}>
       <button 
         onClick={() => { setIsOpen(!isOpen); setUnreadCount(0); }}
         className="relative p-3 bg-white border border-slate-200 rounded-full shadow-lg hover:shadow-xl transition-all hover:bg-slate-50 focus:outline-none"
