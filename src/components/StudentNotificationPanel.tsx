@@ -111,6 +111,17 @@ export default function StudentNotificationPanel() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  // Update App Badge for PWA
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
+      if (unreadCount > 0) {
+        (navigator as any).setAppBadge(unreadCount).catch(console.error)
+      } else {
+        (navigator as any).clearAppBadge().catch(console.error)
+      }
+    }
+  }, [unreadCount])
+
   if (!user) return null
 
   return (

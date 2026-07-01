@@ -180,6 +180,17 @@ export default function NotificationPanel() {
 
   const totalNotifications = allNotifications.length
 
+  // Update App Badge for PWA
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
+      if (totalNotifications > 0) {
+        (navigator as any).setAppBadge(totalNotifications).catch(console.error)
+      } else {
+        (navigator as any).clearAppBadge().catch(console.error)
+      }
+    }
+  }, [totalNotifications])
+
   return (
     <div className="fixed top-3 right-16 z-50 md:top-6 md:right-8" ref={panelRef}>
       {/* Bell Button */}
