@@ -4,8 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
-import { db, storage } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -27,9 +26,9 @@ export default function CreateTestPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [pdfUrlInput, setPdfUrlInput] = useState("")
+  const [fileNameInput, setFileNameInput] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const pdfInputRef = useRef<HTMLInputElement>(null)
 
   // CSV Parser
   const parseCSVRow = (str: string) => {
@@ -139,29 +138,9 @@ export default function CreateTestPage() {
   const handlePublish = async () => {
     if (!title.trim()) { alert("Please enter a title."); return }
     if (type === "cbt" && questions.length === 0) { alert("Please add at least one question."); return }
-    if (type === "notes" && !pdfFile) { alert("Please select a PDF file."); return }
+    if (type === "notes" && !pdfUrlInput.trim()) { alert("Please enter a PDF link."); return }
     setIsSaving(true)
     try {
-      let uploadedPdfUrl = ""
-      if (type === "notes" && pdfFile) {
-        // Upload PDF to Firebase Storage
-        const fileRef = ref(storage, `notes/${Date.now()}_${pdfFile.name}`)
-        const uploadTask = uploadBytesResumable(fileRef, pdfFile)
-        
-        await new Promise((resolve, reject) => {
-          uploadTask.on(
-            "state_changed",
-            (snapshot) => {
-              // progress can be tracked here if needed
-            },
-            (error) => reject(error),
-            () => resolve(true)
-          )
-        })
-        
-        uploadedPdfUrl = await getDownloadURL(fileRef)
-      }
-
       const data: any = {
         title: title.trim(),
         description: description.trim(),
@@ -175,8 +154,8 @@ export default function CreateTestPage() {
       if (type === "cbt") data.questions = questions
       if (type === "course") data.modules = modules
       if (type === "notes") {
-        data.pdfUrl = uploadedPdfUrl
-        data.fileName = pdfFile?.name || ""
+        data.pdfUrl = pdfUrlInput.trim()
+        data.fileName = fileNameInput.trim() || title.trim()
       }
 
       await addDoc(collection(db, "courses"), data)
@@ -413,44 +392,34 @@ export default function CreateTestPage() {
             </Card>
           )}
 
-          {/* Notes Upload */}
+          {/* Notes Upload Alternative */}
           {type === "notes" && (
             <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
               <CardHeader className="bg-slate-50/50 border-b">
-                <CardTitle className="text-lg">Upload PDF Notes</CardTitle>
-                <CardDescription className="text-xs">Upload high-quality study materials</CardDescription>
+                <CardTitle className="text-lg">Link PDF Notes</CardTitle>
+                <CardDescription className="text-xs">Paste a link to your Google Drive PDF or other hosted file.</CardDescription>
               </CardHeader>
-              <CardContent className="pt-6">
-                <input 
-                  type="file" 
-                  accept=".pdf,application/pdf" 
-                  className="hidden" 
-                  ref={pdfInputRef} 
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file && file.size <= 50 * 1024 * 1024) { // 50MB check
-                      setPdfFile(file)
-                    } else if (file) {
-                      alert("File is too large. Max 50MB allowed.")
-                    }
-                  }}
-                />
-                <div 
-                  onClick={() => pdfInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-2xl p-14 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group"
-                >
-                  <div className="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg">
-                    {pdfFile ? <FileText className="w-8 h-8 text-white" /> : <UploadCloud className="w-8 h-8 text-white" />}
-                  </div>
-                  <h3 className="text-base font-semibold text-slate-700 mb-1">
-                    {pdfFile ? pdfFile.name : "Drag & Drop PDF Here"}
-                  </h3>
-                  <p className="text-xs text-slate-500 mb-4">
-                    {pdfFile ? `${(pdfFile.size / (1024 * 1024)).toFixed(2)} MB` : "or click to browse (Max 50MB)"}
+              <CardContent className="pt-6 space-y-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold text-slate-700">PDF URL (Google Drive Link) *</Label>
+                  <Input 
+                    placeholder="https://drive.google.com/file/d/.../view" 
+                    value={pdfUrlInput}
+                    onChange={(e) => setPdfUrlInput(e.target.value)}
+                    className="rounded-xl"
+                  />
+                  <p className="text-xs text-slate-500">
+                    Make sure the Google Drive link is set to "Anyone with the link can view".
                   </p>
-                  <Button type="button" className="gap-2 rounded-xl gradient-bg border-0 text-white">
-                    {pdfFile ? "Change PDF" : <><UploadCloud className="w-4 h-4" /> Select PDF</>}
-                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold text-slate-700">File Name (Optional)</Label>
+                  <Input 
+                    placeholder="e.g. Chapter 1 Notes" 
+                    value={fileNameInput}
+                    onChange={(e) => setFileNameInput(e.target.value)}
+                    className="rounded-xl"
+                  />
                 </div>
               </CardContent>
             </Card>
