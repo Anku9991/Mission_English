@@ -21,8 +21,8 @@ export async function POST(req: Request) {
     // Initialize the Google Generative AI SDK
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // We use gemini-pro as it is the fastest and most universally supported model across regions
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Use the latest 2026 active model gemini-3.5-flash
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     const prompt = `You are an expert educator. Create comprehensive, well-structured study notes on the following topic: "${topic}". 
 Use clear headings, bullet points, and easy-to-understand language. Make it suitable for students preparing for exams. Do not use markdown that cannot be easily read as plain text, just structure it cleanly.`;
