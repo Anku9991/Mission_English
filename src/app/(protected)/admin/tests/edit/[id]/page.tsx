@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ArrowLeft, Plus, Save, Trash2, FileText, PlayCircle, Loader2, Lock, Upload } from "lucide-react"
+import { ArrowLeft, Plus, Save, Trash2, FileText, PlayCircle, Loader2, Lock, Upload, Wand2 } from "lucide-react"
 import type { Question, Module, Lesson, Course } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRef } from "react"
@@ -95,6 +95,9 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
   const [duration, setDuration] = useState("")
   const [questions, setQuestions] = useState<Question[]>([])
   const [modules, setModules] = useState<Module[]>([])
+  const [richTextNotes, setRichTextNotes] = useState("")
+  const [isAIGenerating, setIsAIGenerating] = useState(false)
+  const [aiTopic, setAiTopic] = useState("")
 
   useEffect(() => {
     async function loadCourse() {
@@ -111,8 +114,8 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
         setDuration(data.duration || "")
         
         if (data.questions) setQuestions(data.questions)
-
         if (data.modules) setModules(data.modules)
+        if (data.richTextNotes) setRichTextNotes(data.richTextNotes)
 
         // 2. Check if any payments exist for this course
         const q = query(collection(db, "payment_requests"), where("courseId", "==", courseId))
@@ -149,6 +152,7 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
   const handleUpdate = async () => {
     if (locked) return
     if (!title.trim()) { alert("Please enter a title."); return }
+    if (type === "notes" && !richTextNotes.trim()) { alert("Please enter some text notes."); return }
     setIsSaving(true)
     try {
       const data: any = {
@@ -159,8 +163,8 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
       }
       
       if (type === "cbt") data.questions = questions
-      
       if (type === "course") data.modules = modules
+      if (type === "notes") data.richTextNotes = richTextNotes.trim()
 
       await updateDoc(doc(db, "courses", courseId), data)
       alert("Updated successfully!")
@@ -169,6 +173,30 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
       alert("Error saving: " + err.message)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleAIGenerateNotes = async () => {
+    if (!aiTopic.trim()) {
+      alert("Please enter a topic for the AI to generate notes on.")
+      return
+    }
+    setIsAIGenerating(true)
+    try {
+      const res = await fetch("/api/generate-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: aiTopic })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to generate notes")
+      
+      // Append or set the generated notes
+      setRichTextNotes(prev => prev ? prev + "\n\n" + data.text : data.text)
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setIsAIGenerating(false)
     }
   }
 
@@ -345,10 +373,49 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
 
           {/* Notes Builder */}
           {type === "notes" && (
-            <div className="text-center p-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-              <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">Notes PDF editing coming soon.</p>
-            </div>
+            <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
+              <CardHeader className="bg-slate-50/50 border-b">
+                <CardTitle className="text-lg">Edit Text Notes</CardTitle>
+                <CardDescription className="text-xs">Type or paste your notes directly here.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="bg-purple-50/50 border border-purple-100 rounded-xl p-4">
+                  <Label className="font-bold text-purple-900 flex items-center gap-2 mb-2">
+                    <Wand2 className="w-4 h-4" /> AI Note Generator
+                  </Label>
+                  <p className="text-xs text-purple-700 mb-3">Enter a topic and let AI generate comprehensive study notes for you instantly.</p>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="e.g., Present Continuous Tense in English" 
+                      value={aiTopic}
+                      onChange={e => setAiTopic(e.target.value)}
+                      className="bg-white border-purple-200 focus-visible:ring-purple-500 rounded-lg"
+                    />
+                    <Button 
+                      onClick={handleAIGenerateNotes} 
+                      disabled={isAIGenerating}
+                      className="bg-purple-600 hover:bg-purple-700 text-white gap-2 shrink-0 rounded-lg"
+                    >
+                      {isAIGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                      Generate
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="font-semibold text-slate-700">Study Material Content *</Label>
+                  <textarea
+                    className="flex w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 min-h-[400px] transition-all resize-y"
+                    placeholder="Type your notes here... You can use paragraphs, lists, etc."
+                    value={richTextNotes}
+                    onChange={(e) => setRichTextNotes(e.target.value)}
+                  />
+                  <p className="text-xs text-slate-500 text-right">
+                    Line breaks will be preserved when students view the notes.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {!locked && (
