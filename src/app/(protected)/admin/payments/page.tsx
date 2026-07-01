@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, addDoc, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, XCircle, Clock, Loader2, IndianRupee, User, BookOpen, Hash, AlertCircle } from "lucide-react"
+import { CheckCircle2, XCircle, Clock, Loader2, IndianRupee, User, BookOpen, Hash, AlertCircle, Download } from "lucide-react"
 import type { PaymentRequest } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -75,6 +75,35 @@ export default function AdminPaymentsPage() {
     }
   }
 
+  const exportToCSV = () => {
+    const dataToExport = filter === "all" ? payments : filtered
+    if (dataToExport.length === 0) {
+      alert("No data to export")
+      return
+    }
+
+    const headers = ["User ID", "Name", "Course", "Amount (INR)", "Transaction ID", "Status", "Date Submitted"]
+    const rows = dataToExport.map(p => [
+      `"${p.studentId}"`,
+      `"${p.studentName.replace(/"/g, '""')}"`,
+      `"${p.courseTitle.replace(/"/g, '""')}"`,
+      p.amount,
+      `"${p.txnId}"`,
+      `"${p.status}"`,
+      `"${new Date(p.submittedAt).toLocaleString("en-IN")}"`
+    ])
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.setAttribute("href", url)
+    link.setAttribute("download", `payments_${filter}_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const filtered = filter === "all" ? payments : payments.filter(p => p.status === filter)
   const pendingCount = payments.filter(p => p.status === "pending").length
 
@@ -86,16 +115,25 @@ export default function AdminPaymentsPage() {
           <h1 className="text-3xl font-black text-slate-900">Payment Approvals</h1>
           <p className="text-slate-500 mt-1 text-sm">Verify UPI transactions and unlock course access</p>
         </div>
-        {pendingCount > 0 && (
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-xl text-sm font-semibold"
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          {pendingCount > 0 && (
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-xl text-sm font-semibold"
+            >
+              <AlertCircle className="w-4 h-4" />
+              {pendingCount} pending
+            </motion.div>
+          )}
+          <Button 
+            onClick={exportToCSV} 
+            variant="outline" 
+            className="gap-2 rounded-xl text-sm font-semibold border-slate-200 shadow-sm"
           >
-            <AlertCircle className="w-4 h-4" />
-            {pendingCount} pending
-          </motion.div>
-        )}
+            <Download className="w-4 h-4" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Date Filter & Status Tabs */}
