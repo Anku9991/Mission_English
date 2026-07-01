@@ -23,7 +23,8 @@ export default function CreateTestPage() {
   const [duration, setDuration] = useState("60 minutes")
   const [questions, setQuestions] = useState<Question[]>([])
   const [modules, setModules] = useState<Module[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [isAIGenerating, setIsAIGenerating] = useState(false)
+  const [aiTopic, setAiTopic] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [richTextNotes, setRichTextNotes] = useState("")
@@ -112,20 +113,6 @@ export default function CreateTestPage() {
     }))
   }
 
-  const handleAutoGenerate = () => {
-    setIsGenerating(true)
-    setTimeout(() => {
-      setQuestions(prev => [...prev,
-        { id: Date.now() + "1", text: "Select the synonym of 'ABUNDANT':", options: { A: "Scarce", B: "Plentiful", C: "Rare", D: "Empty" }, correct: "B", marks: 2 },
-        { id: Date.now() + "2", text: "Choose the correctly spelt word:", options: { A: "Accommodate", B: "Acommodate", C: "Accomodate", D: "Acomodate" }, correct: "A", marks: 2 },
-        { id: Date.now() + "3", text: "Identify the antonym for 'OBSCURE':", options: { A: "Clear", B: "Hidden", C: "Vague", D: "Dark" }, correct: "A", marks: 2 },
-        { id: Date.now() + "4", text: "Fill in the blank: The meeting has been ______ due to rain.", options: { A: "put off", B: "put on", C: "put out", D: "put in" }, correct: "A", marks: 2 },
-        { id: Date.now() + "5", text: "He is the ______ player in the team. (Error detection)", options: { A: "bestest", B: "most best", C: "best", D: "better" }, correct: "C", marks: 2 },
-      ])
-      setIsGenerating(false)
-    }, 2000)
-  }
-
   // Course Handlers
   const addModule = () => setModules([...modules, { id: Date.now().toString(), title: "New Module", lessons: [] }])
   const removeModule = (mId: string) => setModules(modules.filter(m => m.id !== mId))
@@ -163,6 +150,30 @@ export default function CreateTestPage() {
       alert("Error saving: " + err.message)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleAIGenerateNotes = async () => {
+    if (!aiTopic.trim()) {
+      alert("Please enter a topic for the AI to generate notes on.")
+      return
+    }
+    setIsAIGenerating(true)
+    try {
+      const res = await fetch("/api/generate-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: aiTopic })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to generate notes")
+      
+      // Append or set the generated notes
+      setRichTextNotes(prev => prev ? prev + "\n\n" + data.text : data.text)
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setIsAIGenerating(false)
     }
   }
 
@@ -268,11 +279,6 @@ export default function CreateTestPage() {
                   <CardDescription className="text-xs mt-0.5">{questions.length} question{questions.length !== 1 ? "s" : ""} added</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="secondary" onClick={handleAutoGenerate} disabled={isGenerating} className="gap-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border-0 rounded-xl text-xs">
-                    {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
-                    {isGenerating ? "Generating..." : "Auto-Generate"}
-                  </Button>
-                  
                   <input type="file" accept=".csv" className="hidden" ref={fileInputRef} onChange={handleCSVUpload} />
                   <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2 rounded-xl text-xs h-9 border-slate-200">
                     <Upload className="w-3 h-3" /> Upload CSV
@@ -288,7 +294,7 @@ export default function CreateTestPage() {
                   <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl">
                     <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                     <p className="font-semibold text-slate-600 text-sm">No questions yet</p>
-                    <p className="text-slate-400 text-xs mt-1 mb-4">Click "Add Q", use Auto-Generate, or upload a CSV file.</p>
+                    <p className="text-slate-400 text-xs mt-1 mb-4">Click "Add Q" or upload a CSV file.</p>
                     <div className="bg-slate-50 p-4 rounded-xl text-left text-xs text-slate-500 max-w-sm mx-auto border border-slate-100">
                       <strong className="block text-slate-700 mb-1">CSV Format Required:</strong>
                       Question, OptionA, OptionB, OptionC, OptionD, CorrectAnswer(A/B/C/D), Marks
@@ -397,7 +403,30 @@ export default function CreateTestPage() {
                 <CardTitle className="text-lg">Write Text Notes</CardTitle>
                 <CardDescription className="text-xs">Type or paste your notes directly here.</CardDescription>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 space-y-6">
+                <div className="bg-purple-50/50 border border-purple-100 rounded-xl p-4">
+                  <Label className="font-bold text-purple-900 flex items-center gap-2 mb-2">
+                    <Wand2 className="w-4 h-4" /> AI Note Generator
+                  </Label>
+                  <p className="text-xs text-purple-700 mb-3">Enter a topic and let AI generate comprehensive study notes for you instantly.</p>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="e.g., Present Continuous Tense in English" 
+                      value={aiTopic}
+                      onChange={e => setAiTopic(e.target.value)}
+                      className="bg-white border-purple-200 focus-visible:ring-purple-500 rounded-lg"
+                    />
+                    <Button 
+                      onClick={handleAIGenerateNotes} 
+                      disabled={isAIGenerating}
+                      className="bg-purple-600 hover:bg-purple-700 text-white gap-2 shrink-0 rounded-lg"
+                    >
+                      {isAIGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                      Generate
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   <Label className="font-semibold text-slate-700">Study Material Content *</Label>
                   <textarea
