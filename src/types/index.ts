@@ -34,6 +34,7 @@ export interface Course {
   duration?: string
   questions?: Question[]
   modules?: Module[]
+  richTextNotes?: string
   pdfUrl?: string
   thumbnail?: string
   createdAt: number
