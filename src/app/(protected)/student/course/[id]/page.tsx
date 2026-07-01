@@ -105,23 +105,15 @@ export default function CourseViewerPage({ params }: { params: Promise<{ id: str
       </div>
 
       {course.type === "notes" ? (
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col h-[75vh]">
-          <div className="bg-white border-b border-slate-200 p-4 flex items-center gap-3">
-            <BookOpen className="w-5 h-5 text-blue-500" />
-            <span className="font-bold text-slate-700">{course.fileName || "Study Material"}</span>
-            <a href={(course as any).pdfUrl} target="_blank" rel="noreferrer" className="ml-auto">
-              <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs font-bold">
-                Open in New Tab
-              </Button>
-            </a>
+        <div className="bg-slate-50 border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col min-h-[60vh]">
+          <div className="bg-white border-b border-slate-200 p-6 flex items-center gap-3">
+            <BookOpen className="w-6 h-6 text-blue-500" />
+            <h2 className="font-bold text-slate-800 text-xl">{course.title} Notes</h2>
           </div>
-          <div className="flex-1 w-full bg-slate-100">
-            {/* Embed PDF Viewer */}
-            <iframe 
-              src={(course as any).pdfUrl + "#toolbar=0"} 
-              className="w-full h-full border-0"
-              title="PDF Viewer"
-            />
+          <div className="p-6 md:p-10 w-full bg-white flex-1">
+            <div className="prose max-w-none text-slate-700 whitespace-pre-wrap leading-relaxed text-base">
+              {(course as any).richTextNotes || "No notes available."}
+            </div>
           </div>
         </div>
       ) : (

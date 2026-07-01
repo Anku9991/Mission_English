@@ -26,8 +26,7 @@ export default function CreateTestPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [pdfUrlInput, setPdfUrlInput] = useState("")
-  const [fileNameInput, setFileNameInput] = useState("")
+  const [richTextNotes, setRichTextNotes] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // CSV Parser
@@ -138,7 +137,7 @@ export default function CreateTestPage() {
   const handlePublish = async () => {
     if (!title.trim()) { alert("Please enter a title."); return }
     if (type === "cbt" && questions.length === 0) { alert("Please add at least one question."); return }
-    if (type === "notes" && !pdfUrlInput.trim()) { alert("Please enter a PDF link."); return }
+    if (type === "notes" && !richTextNotes.trim()) { alert("Please enter some text notes."); return }
     setIsSaving(true)
     try {
       const data: any = {
@@ -154,8 +153,7 @@ export default function CreateTestPage() {
       if (type === "cbt") data.questions = questions
       if (type === "course") data.modules = modules
       if (type === "notes") {
-        data.pdfUrl = pdfUrlInput.trim()
-        data.fileName = fileNameInput.trim() || title.trim()
+        data.richTextNotes = richTextNotes.trim()
       }
 
       await addDoc(collection(db, "courses"), data)
@@ -392,34 +390,25 @@ export default function CreateTestPage() {
             </Card>
           )}
 
-          {/* Notes Upload Alternative */}
+          {/* Text Notes Upload */}
           {type === "notes" && (
             <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
               <CardHeader className="bg-slate-50/50 border-b">
-                <CardTitle className="text-lg">Link PDF Notes</CardTitle>
-                <CardDescription className="text-xs">Paste a link to your Google Drive PDF or other hosted file.</CardDescription>
+                <CardTitle className="text-lg">Write Text Notes</CardTitle>
+                <CardDescription className="text-xs">Type or paste your notes directly here.</CardDescription>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div className="space-y-2">
-                  <Label className="font-semibold text-slate-700">PDF URL (Google Drive Link) *</Label>
-                  <Input 
-                    placeholder="https://drive.google.com/file/d/.../view" 
-                    value={pdfUrlInput}
-                    onChange={(e) => setPdfUrlInput(e.target.value)}
-                    className="rounded-xl"
+              <CardContent className="pt-6">
+                <div className="space-y-3">
+                  <Label className="font-semibold text-slate-700">Study Material Content *</Label>
+                  <textarea
+                    className="flex w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 min-h-[400px] transition-all resize-y"
+                    placeholder="Type your notes here... You can use paragraphs, lists, etc."
+                    value={richTextNotes}
+                    onChange={(e) => setRichTextNotes(e.target.value)}
                   />
-                  <p className="text-xs text-slate-500">
-                    Make sure the Google Drive link is set to "Anyone with the link can view".
+                  <p className="text-xs text-slate-500 text-right">
+                    Line breaks will be preserved when students view the notes.
                   </p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-semibold text-slate-700">File Name (Optional)</Label>
-                  <Input 
-                    placeholder="e.g. Chapter 1 Notes" 
-                    value={fileNameInput}
-                    onChange={(e) => setFileNameInput(e.target.value)}
-                    className="rounded-xl"
-                  />
                 </div>
               </CardContent>
             </Card>
