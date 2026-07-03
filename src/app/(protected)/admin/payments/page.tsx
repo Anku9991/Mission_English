@@ -12,7 +12,7 @@ export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<PaymentRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("approved")
-  const [selectedDate, setSelectedDate] = useState<string>("") // YYYY-MM-DD
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]) // Default to today
 
   useEffect(() => {
     let q = query(collection(db, "payment_requests"), orderBy("submittedAt", "desc"))
