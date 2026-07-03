@@ -91,6 +91,7 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
   const [type, setType] = useState<"cbt" | "course" | "notes">("cbt")
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [category, setCategory] = useState("")
   const [price, setPrice] = useState<number>(0)
   const [duration, setDuration] = useState("")
   const [questions, setQuestions] = useState<Question[]>([])
@@ -110,6 +111,7 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
         setType(data.type)
         setTitle(data.title)
         setDescription(data.description || "")
+        setCategory(data.category || "")
         setPrice(data.price)
         setDuration(data.duration || "")
         
@@ -158,6 +160,7 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
       const data: any = {
         title: title.trim(),
         description: description.trim(),
+        category: category.trim() || "Uncategorized",
         price: Number(price),
         duration,
       }
@@ -246,6 +249,16 @@ export default function EditTestPage({ params }: { params: Promise<{ id: string 
               <div className="space-y-2">
                 <Label className="font-semibold">Title *</Label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} className="rounded-xl input-premium" />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-semibold">Category</Label>
+                <Input
+                  placeholder="e.g. WBP, CGHS, SSC, Banking..."
+                  value={category}
+                  onChange={e => setCategory(e.target.value)}
+                  className="rounded-xl input-premium uppercase"
+                />
               </div>
 
               <div className="space-y-2">

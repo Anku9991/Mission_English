@@ -22,6 +22,7 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true)
   const [unlocking, setUnlocking] = useState<string | null>(null)
   const [completedTests, setCompletedTests] = useState<Record<string, string>>({})
+  const [selectedCategory, setSelectedCategory] = useState<string>("All")
 
   const studentProfile = profile?.role === "student" ? profile : null
   const [unlockedIds, setUnlockedIds] = useState<string[]>(studentProfile?.unlockedCourses || [])
@@ -106,6 +107,25 @@ export default function StudentDashboard() {
         </h2>
       </div>
 
+      {/* Category Tabs */}
+      {!loading && courses.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide">
+          {["All", ...Array.from(new Set(courses.map(c => (c.category?.trim().toUpperCase() || "UNCATEGORIZED"))))].map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`whitespace-nowrap px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                selectedCategory === cat 
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" 
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -120,8 +140,10 @@ export default function StudentDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {courses.map((course, i) => {
+          <AnimatePresence mode="popLayout">
+            {courses
+              .filter(course => selectedCategory === "All" || (course.category?.trim().toUpperCase() || "UNCATEGORIZED") === selectedCategory)
+              .map((course, i) => {
               const meta = TYPE_META[course.type]
               const Icon = meta.icon
               const isUnlocked = unlockedIds.includes(course.id)

@@ -19,6 +19,7 @@ export default function CreateTestPage() {
   const [type, setType] = useState<"cbt" | "course" | "notes">("cbt")
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [category, setCategory] = useState("")
   const [price, setPrice] = useState<number>(0)
   const [duration, setDuration] = useState("60 minutes")
   const [questions, setQuestions] = useState<Question[]>([])
@@ -130,6 +131,7 @@ export default function CreateTestPage() {
       const data: any = {
         title: title.trim(),
         description: description.trim(),
+        category: category.trim() || "Uncategorized",
         type,
         price: Number(price),
         duration,
@@ -225,6 +227,17 @@ export default function CreateTestPage() {
                   onChange={e => setTitle(e.target.value)}
                   className="rounded-xl input-premium"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-semibold">Category</Label>
+                <Input
+                  placeholder="e.g. WBP, CGHS, SSC, Banking..."
+                  value={category}
+                  onChange={e => setCategory(e.target.value)}
+                  className="rounded-xl input-premium uppercase"
+                />
+                <p className="text-xs text-slate-400">Used to group tests on the student dashboard.</p>
               </div>
 
               <div className="space-y-2">
