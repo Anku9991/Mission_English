@@ -33,6 +33,10 @@ export default function AdminSidebar() {
   const { logout, profile } = useAuth()
   const [isOpen, setIsOpen] = React.useState(false)
 
+  const toggleDarkMode = () => {
+    document.documentElement.classList.toggle('dark')
+  }
+
   React.useEffect(() => {
     setIsOpen(false)
   }, [pathname])
@@ -102,7 +106,11 @@ export default function AdminSidebar() {
 
       <div className="mt-auto p-6">
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 shadow-sm">
-          <div className="flex items-center space-x-3 mb-4">
+          <div 
+            className="flex items-center space-x-3 mb-4 cursor-pointer hover:bg-slate-100 p-2 -mx-2 rounded-xl transition-colors"
+            onClick={toggleDarkMode}
+            title="Toggle Dark Mode"
+          >
             <div className="h-10 w-10 rounded-full gradient-bg flex items-center justify-center text-white font-bold shadow-md">
               {profile?.email?.[0].toUpperCase() || 'A'}
             </div>
