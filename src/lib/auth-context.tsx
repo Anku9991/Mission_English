@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { User, onAuthStateChanged, signOut } from "firebase/auth"
-import { doc, getDoc, setDoc } from "firebase/firestore"
+import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore"
 import { auth, db } from "./firebase"
 
 type UserRole = "student" | "admin"
@@ -58,6 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
       
+      let profileUnsub: (() => void) | undefined;
+      
       if (firebaseUser) {
         // FAST PATH: Load from cache instantly to bypass "Authenticating..." screen
         const cachedProfile = localStorage.getItem(`me_profile_${firebaseUser.uid}`)
@@ -72,41 +74,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         try {
           const isStudentEmail = firebaseUser.email?.endsWith("@me.com")
-          let finalProfile: UserProfile | null = null;
           
           if (isStudentEmail) {
-            // Student Profile Flow
+            // Student Profile Flow - Use onSnapshot for real-time updates!
             const studentId = firebaseUser.email!.split("@")[0].toUpperCase()
             const docRef = doc(db, "students", studentId)
-            const docSnap = await getDoc(docRef)
             
-            if (docSnap.exists()) {
-              const data = docSnap.data()
-              finalProfile = { 
-                ...data, 
-                role: "student",
-                unlockedCourses: data.unlockedCourses || []
-              } as StudentProfile
-            } else {
-              // Fallback if document missing
-              finalProfile = {
-                studentId,
-                fullName: "Student",
-                phone: "",
-                course: "",
-                batch: "",
-                paymentStatus: "Pending",
-                status: "Active",
-                testUnlocked: false,
-                unlockedCourses: [],
-                createdAt: Date.now(),
-                role: "student"
+            profileUnsub = onSnapshot(docRef, (docSnap) => {
+              let finalProfile: UserProfile;
+              if (docSnap.exists()) {
+                const data = docSnap.data()
+                finalProfile = { 
+                  ...data, 
+                  role: "student",
+                  unlockedCourses: data.unlockedCourses || []
+                } as StudentProfile
+              } else {
+                finalProfile = {
+                  studentId,
+                  fullName: "Student",
+                  phone: "",
+                  course: "",
+                  batch: "",
+                  paymentStatus: "Pending",
+                  status: "Active",
+                  testUnlocked: false,
+                  unlockedCourses: [],
+                  createdAt: Date.now(),
+                  role: "student"
+                }
               }
-            }
+              setProfile(prev => {
+                if (JSON.stringify(prev) === JSON.stringify(finalProfile)) return prev;
+                return finalProfile;
+              });
+              localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
+              setLoading(false)
+            });
+            
           } else {
             // Admin Profile Flow
             const docRef = doc(db, "users", firebaseUser.uid)
             const docSnap = await getDoc(docRef)
+            let finalProfile: UserProfile;
             
             if (docSnap.exists()) {
               finalProfile = { ...docSnap.data(), role: "admin" } as AdminProfile
@@ -119,25 +129,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
               await setDoc(docRef, finalProfile)
             }
+            setProfile(finalProfile)
+            localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
+            setLoading(false)
           }
 
-          if (finalProfile) {
-            setProfile(prev => {
-              // Prevent unnecessary re-renders if data hasn't actually changed
-              if (JSON.stringify(prev) === JSON.stringify(finalProfile)) {
-                return prev;
-              }
-              return finalProfile;
-            });
-            localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
-          }
         } catch (error) {
           console.error("Firebase fetch error:", error);
+          setLoading(false)
         }
       } else {
         setProfile(null)
+        setLoading(false)
       }
-      setLoading(false)
+
+      return () => {
+        if (profileUnsub) profileUnsub();
+      }
     })
 
     return () => unsubscribe()
