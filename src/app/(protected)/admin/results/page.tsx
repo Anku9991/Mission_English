@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore"
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,15 +14,32 @@ export default function AdminResultsPage() {
   const [results, setResults] = useState<CBTResult[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [dateFilter, setDateFilter] = useState<string>("today")
 
   useEffect(() => {
-    const q = query(collection(db, "results"), orderBy("submittedAt", "desc"))
+    setLoading(true)
+    let q = query(collection(db, "results"), orderBy("submittedAt", "desc"))
+    
+    if (dateFilter !== "all") {
+      const now = new Date()
+      let startTime = 0
+      if (dateFilter === "today") {
+        now.setHours(0, 0, 0, 0)
+        startTime = now.getTime()
+      } else if (dateFilter === "week") {
+        startTime = now.getTime() - 7 * 24 * 60 * 60 * 1000
+      } else if (dateFilter === "month") {
+        startTime = now.getTime() - 30 * 24 * 60 * 60 * 1000
+      }
+      q = query(collection(db, "results"), where("submittedAt", ">=", startTime), orderBy("submittedAt", "desc"))
+    }
+
     const unsub = onSnapshot(q, snap => {
       setResults(snap.docs.map(d => ({ id: d.id, ...d.data() } as CBTResult)))
       setLoading(false)
     })
     return () => unsub()
-  }, [])
+  }, [dateFilter])
 
   const handlePublishToggle = async (resultId: string, currentStatus: boolean) => {
     setUpdating(resultId)
@@ -51,9 +68,32 @@ export default function AdminResultsPage() {
 
   return (
     <div className="pb-12 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900">Student Results</h1>
-        <p className="text-slate-500 mt-1">Review test submissions and publish scores to students.</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900">Student Results</h1>
+          <p className="text-slate-500 mt-1">Review test submissions and publish scores to students.</p>
+        </div>
+        
+        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1 shadow-sm shrink-0">
+          {[
+            { id: "today", label: "Today" },
+            { id: "week", label: "Last 7 Days" },
+            { id: "month", label: "Last 30 Days" },
+            { id: "all", label: "All Time" }
+          ].map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => setDateFilter(opt.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                dateFilter === opt.id 
+                  ? "bg-indigo-600 text-white shadow-md" 
+                  : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
