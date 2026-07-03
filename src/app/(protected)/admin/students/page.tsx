@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from "firebase/firestore"
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc, limit } from "firebase/firestore"
 import { signInWithEmailAndPassword, updatePassword, signOut } from "firebase/auth"
 import { db, secondaryAuth } from "@/lib/firebase"
 import { StudentProfile } from "@/lib/auth-context"
@@ -15,15 +15,18 @@ export default function AdminStudentsPage() {
   const [students, setStudents] = useState<StudentProfile[]>([])
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
+  const [pageLimit, setPageLimit] = useState(50)
+  const [hasMore, setHasMore] = useState(true)
 
   useEffect(() => {
-    const q = query(collection(db, "students"), orderBy("createdAt", "desc"))
+    const q = query(collection(db, "students"), orderBy("createdAt", "desc"), limit(pageLimit))
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => doc.data() as StudentProfile)
       setStudents(data)
+      setHasMore(snapshot.docs.length === pageLimit)
     })
     return () => unsubscribe()
-  }, [])
+  }, [pageLimit])
 
   const filteredStudents = students.filter(s => {
     const matchesSearch = 
@@ -237,6 +240,17 @@ export default function AdminStudentsPage() {
               </tbody>
             </table>
           </div>
+          {hasMore && (
+            <div className="p-4 flex justify-center border-t border-slate-100 bg-slate-50/50">
+              <Button 
+                variant="outline" 
+                onClick={() => setPageLimit(prev => prev + 50)}
+                className="rounded-xl font-bold"
+              >
+                Load More Students
+              </Button>
+            </div>
+          )}
         </Card>
       )}
     </div>
