@@ -70,11 +70,11 @@ export default function AdminResultsPage() {
     <div className="pb-12 max-w-6xl">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900">Student Results</h1>
-          <p className="text-slate-500 mt-1">Review test submissions and publish scores to students.</p>
+          <h1 className="text-3xl font-black text-foreground">Student Results</h1>
+          <p className="text-muted-foreground mt-1">Review test submissions and publish scores to students.</p>
         </div>
         
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1 shadow-sm shrink-0">
+        <div className="flex items-center gap-2 bg-card border border-border rounded-xl p-1 shadow-sm shrink-0">
           {[
             { id: "today", label: "Today" },
             { id: "week", label: "Last 7 Days" },
@@ -87,7 +87,7 @@ export default function AdminResultsPage() {
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                 dateFilter === opt.id 
                   ? "bg-indigo-600 text-white shadow-md" 
-                  : "text-slate-600 hover:bg-slate-50"
+                  : "text-muted-foreground hover:bg-secondary"
               }`}
             >
               {opt.label}
@@ -99,10 +99,10 @@ export default function AdminResultsPage() {
       {loading ? (
         <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>
       ) : results.length === 0 ? (
-        <div className="text-center py-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl">
-          <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-600 mb-1">No Submissions Yet</h3>
-          <p className="text-slate-400 text-sm">When students complete a CBT test, their results will appear here.</p>
+        <div className="text-center py-20 bg-secondary/50 border-2 border-dashed border-border rounded-3xl">
+          <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-foreground mb-1">No Submissions Yet</h3>
+          <p className="text-muted-foreground text-sm">When students complete a CBT test, their results will appear here.</p>
         </div>
       ) : (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -118,21 +118,21 @@ export default function AdminResultsPage() {
                     <th className="pr-8 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-border">
                 {results.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={r.id} className="hover:bg-secondary/50 transition-colors">
                     <td className="p-4 pl-6">
-                      <div className="font-bold text-slate-900">{r.studentName}</div>
-                      <div className="text-xs text-slate-500 font-mono mt-0.5">{r.studentId}</div>
+                      <div className="font-bold text-foreground">{r.studentName}</div>
+                      <div className="text-xs text-muted-foreground font-mono mt-0.5">{r.studentId}</div>
                     </td>
-                    <td className="p-4 font-semibold text-slate-700">
+                    <td className="p-4 font-semibold text-foreground">
                       {r.courseTitle}
-                      <div className="text-xs text-slate-400 font-normal mt-0.5">
+                      <div className="text-xs text-muted-foreground font-normal mt-0.5">
                         {new Date(r.submittedAt).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="font-black text-slate-900">{r.score} <span className="text-slate-400 font-medium text-sm">/ {r.totalMarks}</span></div>
+                      <div className="font-black text-foreground">{r.score} <span className="text-muted-foreground font-medium text-sm">/ {r.totalMarks}</span></div>
                     </td>
                     <td className="p-4">
                       {r.isPublished ? (

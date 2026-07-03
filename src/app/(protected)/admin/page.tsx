@@ -42,8 +42,8 @@ export default function AdminDashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 mb-2">Platform Overview</h1>
-            <p className="text-slate-600 text-lg">Live analytics and student metrics.</p>
+            <h1 className="text-3xl font-black text-foreground mb-2">Platform Overview</h1>
+            <p className="text-muted-foreground text-lg">Live analytics and student metrics.</p>
           </div>
         </div>
       </div>
@@ -59,14 +59,14 @@ export default function AdminDashboard() {
               transition={{ delay: i * 0.1 }}
             >
               <Card className="premium-card h-full">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-50/50">
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">{stat.title}</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/50">
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{stat.title}</CardTitle>
                   <div className={`p-2.5 rounded-xl ${stat.bg} shadow-sm`}>
                     <Icon className={`w-5 h-5 ${stat.color}`} />
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <div className="text-3xl font-black text-slate-900">{stat.value}</div>
+                  <div className="text-3xl font-black text-foreground">{stat.value}</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -77,33 +77,33 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
           <Card className="premium-card h-full">
-            <CardHeader className="border-b border-slate-50">
-              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Users className="w-5 h-5 text-indigo-500" /> Recent Signups
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               {students.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                   <Users className="w-12 h-12 mb-4 opacity-20" />
                   <p className="text-sm font-medium">No students registered yet.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {students.sort((a,b) => b.createdAt - a.createdAt).slice(0,5).map(s => (
-                    <div key={s.studentId} className="flex items-center justify-between border border-slate-100 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
+                    <div key={s.studentId} className="flex items-center justify-between border border-border p-4 rounded-2xl hover:bg-secondary transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold">
                           {s.fullName?.[0] || 'S'}
                         </div>
                         <div>
-                          <p className="font-bold text-sm text-slate-900">{s.fullName} <span className="text-slate-400 text-xs ml-1 font-normal">({s.studentId})</span></p>
-                          <p className="text-xs text-slate-500 font-medium">{s.course}</p>
+                          <p className="font-bold text-sm text-foreground">{s.fullName} <span className="text-muted-foreground text-xs ml-1 font-normal">({s.studentId})</span></p>
+                          <p className="text-xs text-muted-foreground font-medium">{s.course}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className={cn("text-xs font-bold px-2 py-1 rounded-md mb-1 inline-block", s.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600')}>{s.status}</p>
-                        <p className={cn("text-xs font-bold block", s.paymentStatus === 'Paid' ? 'text-slate-400' : 'text-amber-500')}>{s.paymentStatus}</p>
+                        <p className={cn("text-xs font-bold block", s.paymentStatus === 'Paid' ? 'text-muted-foreground' : 'text-amber-500')}>{s.paymentStatus}</p>
                       </div>
                     </div>
                   ))}
@@ -115,8 +115,8 @@ export default function AdminDashboard() {
 
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
           <Card className="premium-card h-full">
-            <CardHeader className="border-b border-slate-50">
-              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Activity className="w-5 h-5 text-amber-500" /> Action Center
               </CardTitle>
             </CardHeader>
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
                       <p className="text-sm text-amber-700 font-medium leading-relaxed mb-4">
                         You have <span className="font-bold">{pendingStudents}</span> students pending payment and <span className="font-bold">{lockedStudents}</span> students with locked tests.
                       </p>
-                      <a href="/admin/students" className="inline-flex items-center gap-2 text-sm font-bold text-amber-600 bg-white px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all">
+                      <a href="/admin/students" className="inline-flex items-center gap-2 text-sm font-bold text-amber-600 bg-background px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all border border-amber-100">
                         Review Students <ArrowRight className="w-4 h-4" />
                       </a>
                     </div>

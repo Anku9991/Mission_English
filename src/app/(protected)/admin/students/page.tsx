@@ -111,8 +111,8 @@ export default function AdminStudentsPage() {
     <div className="max-w-7xl pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Student Management</h1>
-          <p className="text-slate-500 mt-1">Manage all registered students and their access.</p>
+          <h1 className="text-3xl font-bold text-foreground">Student Management</h1>
+          <p className="text-muted-foreground mt-1">Manage all registered students and their access.</p>
         </div>
         <Link href="/admin/students/add">
           <Button size="lg" className="gap-2 shadow-md">
@@ -124,7 +124,7 @@ export default function AdminStudentsPage() {
       <Card className="border-0 shadow-sm mb-6">
         <CardContent className="p-4 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search by ID, Name, Phone, Course, Batch..." 
               className="pl-9"
@@ -149,16 +149,16 @@ export default function AdminStudentsPage() {
 
       {filteredStudents.length === 0 ? (
         <Card className="premium-card">
-          <CardContent className="p-16 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-3xl">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
-              <Users className="w-8 h-8 text-slate-300" />
+          <CardContent className="p-16 flex flex-col items-center justify-center text-center bg-secondary/50 rounded-3xl">
+            <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center mb-4 shadow-sm">
+              <Users className="w-8 h-8 text-muted-foreground/30" />
             </div>
-            <h2 className="text-xl font-bold text-slate-700 mb-2">No students found</h2>
-            <p className="text-slate-500 max-w-sm mx-auto mb-6">
+            <h2 className="text-xl font-bold text-foreground mb-2">No students found</h2>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-6">
               Try adjusting your search filters or add a new student manually.
             </p>
             <Link href="/admin/students/add">
-              <Button variant="outline">Add New Student</Button>
+              <Button variant="outline" className="text-foreground border-border hover:bg-secondary">Add New Student</Button>
             </Link>
           </CardContent>
         </Card>
@@ -176,23 +176,23 @@ export default function AdminStudentsPage() {
                   <th className="pr-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-border">
                 {filteredStudents.map((student) => (
-                  <tr key={student.studentId} className="hover:bg-slate-50 transition-colors">
+                  <tr key={student.studentId} className="hover:bg-secondary/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0">
                           {student.studentId}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900">{student.fullName}</p>
-                          <p className="text-slate-500 text-xs">{student.phone}</p>
+                          <p className="font-bold text-foreground">{student.fullName}</p>
+                          <p className="text-muted-foreground text-xs">{student.phone}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-slate-900">{student.course}</p>
-                      <p className="text-slate-500 text-xs">{student.batch}</p>
+                      <p className="font-medium text-foreground">{student.course}</p>
+                      <p className="text-muted-foreground text-xs">{student.batch}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -241,11 +241,11 @@ export default function AdminStudentsPage() {
             </table>
           </div>
           {hasMore && (
-            <div className="p-4 flex justify-center border-t border-slate-100 bg-slate-50/50">
+            <div className="p-4 flex justify-center border-t border-border bg-secondary/50">
               <Button 
                 variant="outline" 
                 onClick={() => setPageLimit(prev => prev + 50)}
-                className="rounded-xl font-bold"
+                className="rounded-xl font-bold text-foreground border-border hover:bg-secondary"
               >
                 Load More Students
               </Button>

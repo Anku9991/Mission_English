@@ -44,11 +44,11 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between bg-white border-b border-slate-200 p-4 sticky top-0 z-40 shadow-sm w-full">
+      <div className="md:hidden flex items-center justify-between bg-card border-b border-border p-4 sticky top-0 z-40 shadow-sm w-full">
         <Link href="/admin" className="flex items-center">
           <img src="/logo.jpeg" alt="Mission English Logo" className="h-8 object-contain" />
         </Link>
-        <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200">
+        <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-muted-foreground bg-secondary hover:bg-secondary/80 rounded-lg border border-border">
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
@@ -63,7 +63,7 @@ export default function AdminSidebar() {
 
       {/* Sidebar Content */}
       <aside className={cn(
-        "w-72 bg-white border-r border-slate-200 flex flex-col h-screen fixed md:sticky top-0 shadow-sm z-50 transition-transform duration-300",
+        "w-72 bg-card border-r border-border flex flex-col h-screen fixed md:sticky top-0 shadow-sm z-50 transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
       <div className="p-6">
@@ -76,7 +76,7 @@ export default function AdminSidebar() {
         </Link>
 
         <nav className="space-y-1.5">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2 mt-8">Main Menu</div>
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 px-2 mt-8">Main Menu</div>
           {sidebarLinks.map((link) => {
             const Icon = link.icon
             const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
@@ -86,12 +86,12 @@ export default function AdminSidebar() {
                 <span className={cn(
                   "flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group",
                   isActive 
-                    ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-primary/10 text-primary shadow-sm border border-primary/20" 
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}>
                   <Icon className={cn(
                     "h-5 w-5 transition-colors", 
-                    isActive ? "text-indigo-600" : "text-slate-400 group-hover:text-indigo-500"
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary/80"
                   )} />
                   <span>{link.name}</span>
                   {isActive && (
@@ -105,9 +105,9 @@ export default function AdminSidebar() {
       </div>
 
       <div className="mt-auto p-6">
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 shadow-sm">
+        <div className="bg-secondary border border-border rounded-2xl p-4 mb-4 shadow-sm">
           <div 
-            className="flex items-center space-x-3 mb-4 cursor-pointer hover:bg-slate-100 p-2 -mx-2 rounded-xl transition-colors"
+            className="flex items-center space-x-3 mb-4 cursor-pointer hover:bg-background p-2 -mx-2 rounded-xl transition-colors"
             onClick={toggleDarkMode}
             title="Toggle Dark Mode"
           >
@@ -115,13 +115,13 @@ export default function AdminSidebar() {
               {profile?.email?.[0].toUpperCase() || 'A'}
             </div>
             <div className="overflow-hidden flex-1">
-              <p className="text-sm font-bold text-slate-900 truncate">{profile?.email || 'Admin'}</p>
-              <p className="text-xs text-slate-500 font-medium">Administrator</p>
+              <p className="text-sm font-bold text-foreground truncate">{profile?.email || 'Admin'}</p>
+              <p className="text-xs text-muted-foreground font-medium">Administrator</p>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="w-full justify-center text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-red-600 transition-colors rounded-xl font-bold h-10"
+            className="w-full justify-center text-foreground border-border hover:bg-background hover:text-destructive transition-colors rounded-xl font-bold h-10"
             onClick={logout}
           >
             <LogOut className="h-4 w-4 mr-2" />
@@ -130,13 +130,13 @@ export default function AdminSidebar() {
         </div>
         
         <div className="text-center space-y-1.5 mt-2">
-          <p className="text-[10px] text-indigo-600 font-semibold italic leading-snug px-1">"The Only Institute Where You Can Learn English From Basic to Advanced."</p>
-          <div className="text-[10px] text-slate-500 font-medium">
+          <p className="text-[10px] text-primary font-semibold italic leading-snug px-1">"The Only Institute Where You Can Learn English From Basic to Advanced."</p>
+          <div className="text-[10px] text-muted-foreground font-medium">
             <p>Director - Ajay Das</p>
             <p>Station Para South, Dinhata</p>
             <p>Coochbehar (736135)</p>
           </div>
-          <div className="pt-3 text-[9px] text-slate-400 font-bold tracking-widest uppercase border-t border-slate-100 mt-2">
+          <div className="pt-3 text-[9px] text-muted-foreground/60 font-bold tracking-widest uppercase border-t border-border mt-2">
             Powered By Pihnexa
           </div>
         </div>

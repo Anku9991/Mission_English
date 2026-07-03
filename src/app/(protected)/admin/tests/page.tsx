@@ -45,8 +45,8 @@ export default function TestsPage() {
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-black text-slate-900">Courses & Tests</h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <h1 className="text-3xl font-black text-foreground">Courses & Tests</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             {loading ? "Loading..." : `${courses.length} item${courses.length !== 1 ? "s" : ""} published`}
           </p>
         </div>
@@ -62,12 +62,12 @@ export default function TestsPage() {
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       ) : courses.length === 0 ? (
-        <div className="text-center py-24 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50">
+        <div className="text-center py-24 border-2 border-dashed border-border rounded-3xl bg-secondary/50">
           <div className="w-20 h-20 gradient-bg rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
             <Zap className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-2xl font-black text-slate-700 mb-2">No content yet</h2>
-          <p className="text-slate-400 mb-6 max-w-sm mx-auto">Create your first CBT test, video course, or PDF notes to get started.</p>
+          <h2 className="text-2xl font-black text-foreground mb-2">No content yet</h2>
+          <p className="text-muted-foreground mb-6 max-w-sm mx-auto">Create your first CBT test, video course, or PDF notes to get started.</p>
           <Link href="/admin/tests/create">
             <Button className="rounded-xl gradient-bg border-0 text-white gap-2 btn-glow">
               <Plus className="w-4 h-4" /> Create First Content
@@ -99,7 +99,7 @@ export default function TestsPage() {
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${meta.bg}`}>
                           <Icon className="w-3 h-3" /> {meta.label}
                         </span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200 uppercase">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border bg-secondary text-muted-foreground border-border uppercase">
                           {course.category || "Uncategorized"}
                         </span>
                       </div>
@@ -122,13 +122,13 @@ export default function TestsPage() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="font-bold text-slate-900 text-base leading-tight mb-1">{course.title}</h3>
+                    <h3 className="font-bold text-foreground text-base leading-tight mb-1">{course.title}</h3>
                     {course.description && (
-                      <p className="text-xs text-slate-500 mb-3 line-clamp-2">{course.description}</p>
+                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{course.description}</p>
                     )}
 
                     {/* Stats row */}
-                    <div className="flex items-center gap-4 text-xs text-slate-400 pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground pt-3 border-t border-border">
                       {course.type === "cbt" && course.questions && (
                         <span className="flex items-center gap-1"><FileText className="w-3.5 h-3.5" /> {course.questions.length} Qs</span>
                       )}
@@ -138,7 +138,7 @@ export default function TestsPage() {
                       {course.duration && (
                         <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {course.duration}</span>
                       )}
-                      <span className={`ml-auto flex items-center gap-0.5 font-bold text-sm ${course.price === 0 ? "text-emerald-600" : "text-slate-700"}`}>
+                      <span className={`ml-auto flex items-center gap-0.5 font-bold text-sm ${course.price === 0 ? "text-emerald-600" : "text-foreground"}`}>
                         {course.price === 0 ? "🆓 Free" : <><IndianRupee className="w-3 h-3" />{course.price}</>}
                       </span>
                     </div>

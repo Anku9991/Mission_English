@@ -159,8 +159,9 @@
    PREMIUM CARD STYLES
    ======================== */
 .premium-card {
-  @apply rounded-3xl border-0;
-  background: white;
+  @apply rounded-3xl border border-border;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
   box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -169,8 +170,8 @@
   transform: translateY(-3px);
 }
 .stat-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,250,255,0.9));
-  border: 1px solid rgba(59,130,246,0.08);
+  background: linear-gradient(135deg, hsl(var(--card) / 0.9), hsl(var(--secondary) / 0.9));
+  border: 1px solid hsl(var(--primary) / 0.1);
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   border-radius: 1.25rem;
   transition: all 0.25s ease;
@@ -243,11 +244,11 @@
    FORM PREMIUM STYLES
    ======================== */
 .input-premium {
-  @apply border-slate-200 rounded-xl bg-slate-50/50 transition-all duration-200;
+  @apply border-border rounded-xl bg-secondary transition-all duration-200 text-foreground;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04) inset;
 }
 .input-premium:focus {
-  @apply border-blue-400 ring-2 ring-blue-100 bg-white;
+  @apply border-primary ring-2 ring-primary/20 bg-background;
   box-shadow: 0 0 0 4px rgba(59,130,246,0.08);
 }
 
@@ -274,14 +275,14 @@
    TABLE PREMIUM
    ======================== */
 .table-premium th {
-  @apply text-xs font-semibold text-slate-500 uppercase tracking-wider py-4 px-6;
-  background: linear-gradient(180deg, #f8faff 0%, #f1f5f9 100%);
-  border-bottom: 2px solid rgba(59,130,246,0.08);
+  @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider py-4 px-6;
+  background: linear-gradient(180deg, hsl(var(--secondary) / 0.5) 0%, hsl(var(--secondary)) 100%);
+  border-bottom: 2px solid hsl(var(--primary) / 0.1);
 }
 .table-premium td {
-  @apply py-4 px-6 border-b border-slate-50;
+  @apply py-4 px-6 border-b border-border;
 }
 .table-premium tr:hover td {
-  @apply bg-blue-50/30;
+  @apply bg-primary/5;
 }
 .table-premium tr:last-child td { border-bottom: none; }
