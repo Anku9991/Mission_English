@@ -153,6 +153,32 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
           name: studentProfile.fullName,
           email: studentProfile.email,
         },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay via UPI",
+                instruments: [
+                  {
+                    method: "upi"
+                  }
+                ]
+              },
+              other: {
+                name: "Other Payment Modes",
+                instruments: [
+                  { method: "card" },
+                  { method: "netbanking" },
+                  { method: "wallet" }
+                ]
+              }
+            },
+            sequence: ["block.upi", "block.other"],
+            preferences: {
+              show_default_blocks: false
+            }
+          }
+        },
         theme: {
           color: "#2563eb"
         }
