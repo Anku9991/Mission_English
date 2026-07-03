@@ -175,7 +175,7 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-4" />
-        <p className="text-slate-500 font-medium">Loading payment details...</p>
+        <p className="text-muted-foreground font-medium">Loading payment details...</p>
       </div>
     )
   }
@@ -183,7 +183,7 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
   if (!course) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-slate-800">Course not found</h2>
+        <h2 className="text-2xl font-bold text-foreground">Course not found</h2>
         <Link href="/student"><Button className="mt-4">Back to Dashboard</Button></Link>
       </div>
     )
@@ -201,8 +201,8 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
                 <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-emerald-200">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
-                <h1 className="text-3xl font-black text-slate-900 mb-2">Payment Approved!</h1>
-                <p className="text-slate-600 mb-8">Your access to <strong>{course.title}</strong> has been unlocked.</p>
+                <h1 className="text-3xl font-black text-foreground mb-2">Payment Approved!</h1>
+                <p className="text-muted-foreground mb-8">Your access to <strong>{course.title}</strong> has been unlocked.</p>
                 <Link href="/student">
                   <Button className="w-full sm:w-auto px-10 h-14 rounded-2xl gradient-bg border-0 btn-glow font-bold text-lg text-white">
                     Start Learning Now
@@ -214,9 +214,9 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
                 <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-amber-200">
                   <Clock className="w-10 h-10 animate-pulse" />
                 </div>
-                <h1 className="text-3xl font-black text-slate-900 mb-2">Verification Pending</h1>
-                <p className="text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
-                  We've received your transaction details (<strong className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-800">{existingPayment.txnId}</strong>). 
+                <h1 className="text-3xl font-black text-foreground mb-2">Verification Pending</h1>
+                <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
+                  We've received your transaction details (<strong className="font-mono bg-secondary px-2 py-0.5 rounded text-foreground">{existingPayment.txnId}</strong>). 
                   Our admin is verifying the payment and will unlock the course shortly.
                 </p>
                 <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 text-left mb-8">
@@ -227,7 +227,7 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
                   </p>
                 </div>
                 <Link href="/student">
-                  <Button variant="outline" className="px-8 h-12 rounded-xl border-slate-200 font-bold">
+                  <Button variant="outline" className="px-8 h-12 rounded-xl border-border font-bold">
                     Return to Dashboard
                   </Button>
                 </Link>
@@ -245,13 +245,13 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
       <div className="max-w-4xl mx-auto pb-12">
       <div className="flex items-center gap-4 mb-8">
         <Link href="/student">
-          <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-slate-200">
+          <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border">
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-black text-slate-900">Checkout</h1>
-          <p className="text-slate-500 mt-1 font-medium">Complete your payment to unlock access</p>
+          <h1 className="text-3xl font-black text-foreground">Checkout</h1>
+          <p className="text-muted-foreground mt-1 font-medium">Complete your payment to unlock access</p>
         </div>
       </div>
 
@@ -259,22 +259,22 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
         {/* Order Summary */}
         <div className="lg:col-span-2 space-y-6 lg:order-2">
           <Card className="border-0 shadow-sm rounded-3xl overflow-hidden premium-card">
-            <div className="p-6 bg-slate-50 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 mb-1">Order Summary</h3>
+            <div className="p-6 bg-secondary/50 border-b border-border">
+              <h3 className="font-bold text-foreground mb-1">Order Summary</h3>
             </div>
             <div className="p-6">
               <div className="mb-4">
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded-md mb-2 inline-block">
                   {course.type.toUpperCase()}
                 </span>
-                <h4 className="font-bold text-slate-900 leading-tight mb-2">{course.title}</h4>
-                <p className="text-sm text-slate-500 line-clamp-2">{course.description}</p>
+                <h4 className="font-bold text-foreground leading-tight mb-2">{course.title}</h4>
+                <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
               </div>
               
-              <div className="pt-4 mt-4 border-t border-slate-100">
+              <div className="pt-4 mt-4 border-t border-border">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-slate-600 font-medium">Price</span>
-                  <span className="font-semibold text-slate-900 flex items-center">
+                  <span className="text-muted-foreground font-medium">Price</span>
+                  <span className="font-semibold text-foreground flex items-center">
                     <IndianRupee className="w-3.5 h-3.5" />{course.price}
                   </span>
                 </div>
@@ -282,9 +282,9 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
                   <span className="font-medium">Internet Handling Fee</span>
                   <span className="font-semibold">Free</span>
                 </div>
-                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                  <span className="font-bold text-slate-900 text-lg">Total Amount</span>
-                  <span className="font-black text-2xl text-slate-900 flex items-center">
+                <div className="flex justify-between items-center pt-4 border-t border-border">
+                  <span className="font-bold text-foreground text-lg">Total Amount</span>
+                  <span className="font-black text-2xl text-foreground flex items-center">
                     <IndianRupee className="w-5 h-5" />{course.price}
                   </span>
                 </div>
@@ -310,15 +310,15 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Pay Securely Online</h2>
-                  <p className="text-sm text-slate-500">UPI, Cards, NetBanking, Wallets supported</p>
+                  <h2 className="text-xl font-bold text-foreground">Pay Securely Online</h2>
+                  <p className="text-sm text-muted-foreground">UPI, Cards, NetBanking, Wallets supported</p>
                 </div>
               </div>
 
-              <div className="p-8 bg-slate-50 border border-slate-200 rounded-3xl text-center mb-8">
-                <Lock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-slate-700 mb-2">Automated Instant Unlock</h3>
-                <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
+              <div className="p-8 bg-secondary/50 border border-border rounded-3xl text-center mb-8">
+                <Lock className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-foreground mb-2">Automated Instant Unlock</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
                   Complete the payment via Razorpay. Once successful, your course will be unlocked immediately without waiting for admin approval!
                 </p>
                 

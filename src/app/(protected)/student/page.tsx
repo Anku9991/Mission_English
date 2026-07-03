@@ -79,18 +79,18 @@ export default function StudentDashboard() {
   return (
     <div className="pb-12">
       {/* Welcome Banner */}
-      <div className="mb-10 p-8 rounded-3xl gradient-bg-hero relative overflow-hidden border border-slate-100 shadow-sm">
+      <div className="mb-10 p-8 rounded-3xl gradient-bg-hero relative overflow-hidden border border-border shadow-sm">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 mb-2">
+            <h1 className="text-3xl font-black text-foreground mb-2">
               Welcome back, <span className="gradient-text">{studentProfile?.fullName?.split(' ')[0] || 'Student'}</span>! 👋
             </h1>
-            <p className="text-slate-600 text-lg">Ready to continue your preparation?</p>
+            <p className="text-muted-foreground text-lg">Ready to continue your preparation?</p>
           </div>
           <div className="flex gap-4">
-            <div className="bg-white/80 backdrop-blur px-5 py-3 rounded-2xl border border-white shadow-sm flex flex-col">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Enrolled</span>
+            <div className="bg-card/80 backdrop-blur px-5 py-3 rounded-2xl border border-border shadow-sm flex flex-col">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Enrolled</span>
               <span className="text-2xl font-black text-blue-600 flex items-center gap-2">
                 <Unlock className="w-5 h-5 text-blue-500" />
                 {unlockedIds.length}
@@ -101,7 +101,7 @@ export default function StudentDashboard() {
       </div>
 
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-indigo-500" />
           Available Courses
         </h2>
@@ -117,7 +117,7 @@ export default function StudentDashboard() {
               className={`whitespace-nowrap px-5 py-2 rounded-xl text-sm font-bold transition-all ${
                 selectedCategory === cat 
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" 
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                  : "bg-card text-muted-foreground border border-border hover:bg-secondary hover:text-foreground"
               }`}
             >
               {cat}
@@ -131,12 +131,12 @@ export default function StudentDashboard() {
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       ) : courses.length === 0 ? (
-        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center shadow-sm">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-md shadow-slate-200/50">
-            <PlayCircle className="w-10 h-10 text-slate-300" />
+        <div className="bg-secondary/50 border-2 border-dashed border-border rounded-3xl p-16 text-center shadow-sm">
+          <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-6 shadow-md shadow-border/50">
+            <PlayCircle className="w-10 h-10 text-muted-foreground/30" />
           </div>
-          <h3 className="text-xl font-bold text-slate-700 mb-2">No active courses yet</h3>
-          <p className="text-slate-500 max-w-sm mx-auto">Explore the available courses below and unlock them to start your learning journey.</p>
+          <h3 className="text-xl font-bold text-foreground mb-2">No active courses yet</h3>
+          <p className="text-muted-foreground max-w-sm mx-auto">Explore the available courses below and unlock them to start your learning journey.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -164,33 +164,33 @@ export default function StudentDashboard() {
                   <div className="p-6 flex-1 flex flex-col">
                     {/* Header */}
                     <div className="flex justify-between items-start mb-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200`}>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-secondary text-muted-foreground border border-border`}>
                         <Icon className="w-3.5 h-3.5" /> {meta.label}
                       </span>
                       {isUnlocked ? (
-                        <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
+                        <span className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 border border-emerald-100 dark:border-emerald-900/50 px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
                           <Unlock className="w-3.5 h-3.5" /> Unlocked
                         </span>
                       ) : (
-                        <span className="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
+                        <span className="bg-secondary text-muted-foreground border border-border px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1">
                           <Lock className="w-3.5 h-3.5" /> Locked
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-xl font-bold text-slate-900 mb-2 leading-snug">{course.title}</h3>
-                    <p className="text-slate-500 text-sm mb-6 line-clamp-2 flex-1">{course.description}</p>
+                    <h3 className="text-xl font-bold text-foreground mb-2 leading-snug">{course.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-6 line-clamp-2 flex-1">{course.description}</p>
 
                     {/* Stats */}
-                    <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-500 mb-6 pb-6 border-b border-slate-100">
+                    <div className="flex flex-wrap gap-4 text-xs font-semibold text-muted-foreground mb-6 pb-6 border-b border-border">
                       {course.type === "cbt" && (
-                        <span className="flex items-center gap-1.5"><FileText className="w-4 h-4 text-slate-400" /> {course.questions?.length || 0} Qs</span>
+                        <span className="flex items-center gap-1.5"><FileText className="w-4 h-4 text-muted-foreground" /> {course.questions?.length || 0} Qs</span>
                       )}
                       {course.type === "course" && (
-                        <span className="flex items-center gap-1.5"><PlayCircle className="w-4 h-4 text-slate-400" /> {course.modules?.length || 0} Mod</span>
+                        <span className="flex items-center gap-1.5"><PlayCircle className="w-4 h-4 text-muted-foreground" /> {course.modules?.length || 0} Mod</span>
                       )}
                       {course.duration && (
-                        <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-slate-400" /> {course.duration}</span>
+                        <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-muted-foreground" /> {course.duration}</span>
                       )}
                     </div>
 
@@ -199,7 +199,7 @@ export default function StudentDashboard() {
                       {isUnlocked ? (
                         course.type === "cbt" && completedResultId ? (
                           <Link href={`/student/results/${completedResultId}`}>
-                            <Button className="w-full h-12 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-bold text-base gap-2 group-hover:scale-[1.02] transition-transform shadow-sm">
+                            <Button className="w-full h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-900/50 font-bold text-base gap-2 group-hover:scale-[1.02] transition-transform shadow-sm">
                               View Result
                               <ArrowRight className="w-4 h-4" />
                             </Button>
@@ -216,21 +216,21 @@ export default function StudentDashboard() {
                         <Button 
                           onClick={() => handleFreeUnlock(course.id)}
                           disabled={unlocking === course.id}
-                          className="w-full h-12 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 border border-emerald-200 font-bold text-base gap-2 transition-colors"
+                          className="w-full h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-900/50 font-bold text-base gap-2 transition-colors"
                         >
                           {unlocking === course.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Unlock className="w-5 h-5" />}
                           {unlocking === course.id ? "Unlocking..." : "Unlock for Free"}
                         </Button>
                       ) : (
-                        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2 rounded-2xl">
+                        <div className="flex items-center gap-3 bg-secondary/50 border border-border p-2 rounded-2xl">
                           <div className="flex-1 text-center">
-                            <span className="text-xl font-black text-slate-900 flex items-center justify-center">
+                            <span className="text-xl font-black text-foreground flex items-center justify-center">
                               <IndianRupee className="w-5 h-5" />{course.price}
                             </span>
                           </div>
                           <Link href={`/student/payment/${course.id}`} className="flex-[2]">
-                            <Button className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold gap-2 shadow-md hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                              <Lock className="w-4 h-4 text-slate-400" /> Enroll Now
+                            <Button className="w-full h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-bold gap-2 shadow-md hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                              <Lock className="w-4 h-4" /> Enroll Now
                             </Button>
                           </Link>
                         </div>

@@ -196,9 +196,9 @@ export default function NotificationPanel() {
       {/* Bell Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-3 bg-white border border-slate-200 rounded-full shadow-lg hover:shadow-xl transition-all hover:bg-slate-50 focus:outline-none"
+        className="relative p-3 bg-card border border-border rounded-full shadow-lg hover:shadow-xl transition-all hover:bg-secondary/50 focus:outline-none"
       >
-        <Bell className="w-6 h-6 text-slate-700" />
+        <Bell className="w-6 h-6 text-foreground" />
         {totalNotifications > 0 && (
           <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
             {totalNotifications}
@@ -214,33 +214,33 @@ export default function NotificationPanel() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
+            className="absolute right-0 mt-3 w-80 sm:w-96 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
           >
-            <div className="bg-slate-50 border-b border-slate-200 p-4 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Notifications</h3>
-              <span className="text-xs font-semibold bg-slate-200 text-slate-600 px-2 py-1 rounded-full">
+            <div className="bg-secondary/50 border-b border-border p-4 flex justify-between items-center">
+              <h3 className="font-bold text-foreground">Notifications</h3>
+              <span className="text-xs font-semibold bg-slate-200 text-muted-foreground px-2 py-1 rounded-full">
                 {totalNotifications} Pending
               </span>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
               {totalNotifications === 0 ? (
-                <div className="p-8 text-center text-slate-500">
-                  <Bell className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <div className="p-8 text-center text-muted-foreground">
+                  <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
                   <p className="text-sm font-medium">No pending approvals</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-slate-100">
+                <ul className="divide-y divide-border">
                   {allNotifications.map(item => {
                     if (item.type === "payment") {
                       const p = item.data
                       const isProcessing = processingId === p.id
                       return (
-                        <li key={`pay_${p.id}`} className="p-4 hover:bg-slate-50 transition-colors">
+                        <li key={`pay_${p.id}`} className="p-4 hover:bg-secondary/50 transition-colors">
                           <div className="flex justify-between items-start mb-2">
                             <div>
-                              <p className="text-sm font-bold text-slate-900">{p.studentName}</p>
-                              <p className="text-xs text-slate-500 line-clamp-1">Payment: {p.courseTitle}</p>
+                              <p className="text-sm font-bold text-foreground">{p.studentName}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-1">Payment: {p.courseTitle}</p>
                             </div>
                             <span className="font-bold text-emerald-600 text-sm flex items-center bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
                               <IndianRupee className="w-3 h-3 mr-0.5" />{p.amount}
@@ -273,8 +273,8 @@ export default function NotificationPanel() {
                         <li key={`res_${r.id}`} className="p-4 hover:bg-blue-50/50 transition-colors border-l-4 border-l-blue-500">
                           <div className="flex justify-between items-start mb-2">
                             <div>
-                              <p className="text-sm font-bold text-slate-900">{r.studentName}</p>
-                              <p className="text-xs text-slate-500 line-clamp-1">Test: {r.courseTitle}</p>
+                              <p className="text-sm font-bold text-foreground">{r.studentName}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-1">Test: {r.courseTitle}</p>
                             </div>
                             <span className="font-bold text-blue-600 text-sm flex items-center bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
                               <FileText className="w-3 h-3 mr-1" /> Submitted

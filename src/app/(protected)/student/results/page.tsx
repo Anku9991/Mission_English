@@ -47,18 +47,18 @@ export default function StudentResultsPage() {
   return (
     <div className="max-w-5xl mx-auto pt-4 pb-20">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900">My Results</h1>
-        <p className="text-slate-500 mt-1">View your performance reports for completed CBTs.</p>
+        <h1 className="text-3xl font-black text-foreground">My Results</h1>
+        <p className="text-muted-foreground mt-1">View your performance reports for completed CBTs.</p>
       </div>
 
       {results.length === 0 ? (
-        <Card className="border-0 shadow-sm rounded-3xl bg-slate-50">
+        <Card className="border-0 shadow-sm rounded-3xl bg-secondary/50">
           <CardContent className="p-16 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
-              <Trophy className="w-10 h-10 text-slate-300" />
+            <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mb-6 shadow-sm">
+              <Trophy className="w-10 h-10 text-muted-foreground/30" />
             </div>
-            <h2 className="text-2xl font-black text-slate-700 mb-2">No results yet</h2>
-            <p className="text-slate-500 max-w-sm mx-auto mb-6">
+            <h2 className="text-2xl font-black text-foreground mb-2">No results yet</h2>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-6">
               You haven't completed any CBT tests yet. Once you finish a test, your detailed performance report will appear here.
             </p>
             <Link href="/student">
@@ -82,7 +82,7 @@ export default function StudentResultsPage() {
                 <div className={`h-1.5 w-full bg-gradient-to-r ${result.isPublished ? 'from-emerald-400 to-teal-500' : 'from-amber-400 to-orange-500'}`} />
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-4">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       {new Date(result.submittedAt).toLocaleDateString()}
                     </span>
                     {result.isPublished ? (
@@ -96,22 +96,22 @@ export default function StudentResultsPage() {
                     )}
                   </div>
                   
-                  <h3 className="text-xl font-bold text-slate-900 mb-6 leading-snug">{result.courseTitle}</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-6 leading-snug">{result.courseTitle}</h3>
                   
                   {result.isPublished ? (
-                    <div className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100 flex justify-between items-center">
+                    <div className="bg-secondary/50 rounded-2xl p-4 mb-6 border border-border flex justify-between items-center">
                       <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Score</p>
-                        <p className="text-2xl font-black text-slate-900">{result.score} <span className="text-sm text-slate-400 font-medium">/ {result.totalMarks}</span></p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Score</p>
+                        <p className="text-2xl font-black text-foreground">{result.score} <span className="text-sm text-muted-foreground font-medium">/ {result.totalMarks}</span></p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Accuracy</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Accuracy</p>
                         <p className="text-2xl font-black text-indigo-600">{result.accuracy}%</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100 text-center">
-                      <p className="text-sm font-medium text-slate-500">Score hidden pending admin verification.</p>
+                    <div className="bg-secondary/50 rounded-2xl p-4 mb-6 border border-border text-center">
+                      <p className="text-sm font-medium text-muted-foreground">Score hidden pending admin verification.</p>
                     </div>
                   )}
 
@@ -119,7 +119,7 @@ export default function StudentResultsPage() {
                     <Link href={`/student/results/${result.id}`}>
                       <Button 
                         variant={result.isPublished ? "default" : "outline"}
-                        className={`w-full h-12 rounded-xl font-bold text-base gap-2 group-hover:scale-[1.02] transition-transform ${result.isPublished ? 'gradient-bg border-0 text-white btn-glow' : 'border-slate-200'}`}
+                        className={`w-full h-12 rounded-xl font-bold text-base gap-2 group-hover:scale-[1.02] transition-transform ${result.isPublished ? 'gradient-bg border-0 text-white btn-glow' : 'border-border'}`}
                       >
                         {result.isPublished ? "View Full Report" : "Check Status"}
                         <ArrowRight className="w-4 h-4" />

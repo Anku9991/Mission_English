@@ -128,9 +128,9 @@ export default function StudentNotificationPanel() {
     <div className="fixed top-3 right-16 z-50 md:top-6 md:right-8" ref={panelRef}>
       <button 
         onClick={() => { setIsOpen(!isOpen); setUnreadCount(0); }}
-        className="relative p-3 bg-white border border-slate-200 rounded-full shadow-lg hover:shadow-xl transition-all hover:bg-slate-50 focus:outline-none"
+        className="relative p-3 bg-card border border-border rounded-full shadow-lg hover:shadow-xl transition-all hover:bg-secondary/50 focus:outline-none"
       >
-        <Bell className="w-6 h-6 text-slate-700" />
+        <Bell className="w-6 h-6 text-foreground" />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
             {unreadCount}
@@ -145,27 +145,27 @@ export default function StudentNotificationPanel() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
+            className="absolute right-0 mt-3 w-80 sm:w-96 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
           >
-            <div className="bg-slate-50 border-b border-slate-200 p-4 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Your Notifications</h3>
+            <div className="bg-secondary/50 border-b border-border p-4 flex justify-between items-center">
+              <h3 className="font-bold text-foreground">Your Notifications</h3>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
               {payments.length === 0 ? (
-                <div className="p-8 text-center text-slate-500">
-                  <Bell className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <div className="p-8 text-center text-muted-foreground">
+                  <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
                   <p className="text-sm font-medium">No recent notifications</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-slate-100">
+                <ul className="divide-y divide-border">
                   {payments.map(p => {
                     return (
-                      <li key={p.id} className="p-4 hover:bg-slate-50 transition-colors">
+                      <li key={p.id} className="p-4 hover:bg-secondary/50 transition-colors">
                         <div className="flex flex-col gap-1.5">
                           <div className="flex justify-between items-start">
-                            <p className="text-sm font-bold text-slate-900 line-clamp-1">{p.courseTitle}</p>
-                            <span className="font-bold text-slate-600 text-sm flex items-center bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
+                            <p className="text-sm font-bold text-foreground line-clamp-1">{p.courseTitle}</p>
+                            <span className="font-bold text-muted-foreground text-sm flex items-center bg-secondary px-2 py-0.5 rounded-lg border border-border">
                               <IndianRupee className="w-3 h-3 mr-0.5" />{p.amount}
                             </span>
                           </div>

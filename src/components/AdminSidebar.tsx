@@ -56,7 +56,7 @@ export default function AdminSidebar() {
       {/* Sidebar Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm transition-opacity" 
+          className="fixed inset-0 bg-foreground/50 z-40 md:hidden backdrop-blur-sm transition-opacity" 
           onClick={() => setIsOpen(false)}
         />
       )}

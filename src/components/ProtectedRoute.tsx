@@ -22,10 +22,10 @@ export function ProtectedRoute({ children, allowedRole }: { children: React.Reac
 
   if (loading || !user || (allowedRole && profile?.role !== allowedRole)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-secondary/50">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 font-medium">Authenticating...</p>
+          <p className="text-muted-foreground font-medium">Authenticating...</p>
         </div>
       </div>
     )

@@ -14,7 +14,7 @@ export function TestReview({ questions, answers }: TestReviewProps) {
   return (
     <div className="space-y-8 mt-12">
       <div className="flex items-center gap-4 mb-6">
-        <h2 className="text-2xl font-black text-slate-900">Detailed Review</h2>
+        <h2 className="text-2xl font-black text-foreground">Detailed Review</h2>
         <div className="h-px bg-slate-200 flex-1"></div>
       </div>
 
@@ -29,29 +29,29 @@ export function TestReview({ questions, answers }: TestReviewProps) {
               key={i} 
               className={`premium-card p-6 md:p-8 rounded-3xl border-2 transition-all ${
                 isCorrect ? "border-emerald-100 bg-emerald-50/30" : 
-                isSkipped ? "border-slate-100 bg-slate-50/50" : 
+                isSkipped ? "border-border bg-secondary/50/50" : 
                 "border-red-100 bg-red-50/30"
               }`}
             >
-              <div className="flex justify-between items-start mb-6 pb-6 border-b border-slate-100">
+              <div className="flex justify-between items-start mb-6 pb-6 border-b border-border">
                 <div className="flex items-center gap-3">
                   <span className={`px-4 py-1.5 rounded-xl text-sm font-bold ${
                     isCorrect ? "bg-emerald-100 text-emerald-700" : 
-                    isSkipped ? "bg-slate-200 text-slate-600" : 
+                    isSkipped ? "bg-slate-200 text-muted-foreground" : 
                     "bg-red-100 text-red-700"
                   }`}>
                     Question {i + 1}
                   </span>
                   {isCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
                   {!isCorrect && !isSkipped && <XCircle className="w-5 h-5 text-red-500" />}
-                  {isSkipped && <MinusCircle className="w-5 h-5 text-slate-400" />}
+                  {isSkipped && <MinusCircle className="w-5 h-5 text-muted-foreground" />}
                 </div>
-                <span className="text-slate-500 font-medium text-sm bg-white px-3 py-1 rounded-lg shadow-sm border border-slate-100">
+                <span className="text-muted-foreground font-medium text-sm bg-card px-3 py-1 rounded-lg shadow-sm border border-border">
                   Marks: {q.marks || 1}
                 </span>
               </div>
               
-              <h3 className="text-lg font-medium text-slate-900 mb-6 leading-relaxed">
+              <h3 className="text-lg font-medium text-foreground mb-6 leading-relaxed">
                 {q.text}
               </h3>
 
@@ -60,8 +60,8 @@ export function TestReview({ questions, answers }: TestReviewProps) {
                   const isOptStudentChoice = studentAnswer === opt
                   const isOptCorrectChoice = q.correct === opt
                   
-                  let optStyle = "border-slate-200 bg-white text-slate-700"
-                  let badgeStyle = "bg-slate-100 text-slate-500"
+                  let optStyle = "border-border bg-card text-foreground"
+                  let badgeStyle = "bg-secondary text-muted-foreground"
 
                   if (isOptCorrectChoice) {
                     // Always highlight the correct answer in green
