@@ -245,7 +245,7 @@ export default function CBTTestPage({ params }: { params: Promise<{ id: string }
       accuracy,
       submittedAt: Date.now(),
       timeTaken: Math.floor((Date.now() - startTime) / 1000),
-      isPublished: false
+      isPublished: true // Auto-publish by default
     }
 
     try {
