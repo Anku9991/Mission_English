@@ -38,9 +38,6 @@ export default function AdminPaymentsPage() {
     return () => unsub()
   }, [selectedDate])
 
-    return () => unsub()
-  }, [selectedDate])
-
   const exportToCSV = () => {
     const dataToExport = filter === "all" ? payments : filtered
     if (dataToExport.length === 0) {
@@ -147,7 +144,6 @@ export default function AdminPaymentsPage() {
         <div className="space-y-4">
           <AnimatePresence>
             {filtered.map((p, i) => {
-              const isProcessing = processing === p.id
               return (
                 <motion.div
                   key={p.id}
