@@ -63,8 +63,8 @@ export default function StudentSettingsPage() {
               </summary>
               <div className="mt-4 text-sm text-muted-foreground space-y-2 leading-relaxed">
                 <p>If you have any questions or concerns, feel free to reach out to our support team.</p>
-                <p><strong>Email:</strong> support@missionenglish.com</p>
-                <p><strong>Phone:</strong> +91 XXXXX XXXXX</p>
+                <p><strong>Email:</strong> ajaydbg121@gmail.com</p>
+                <p><strong>Phone:</strong> +91 8709823853</p>
                 <p><strong>Address:</strong> Kolkata, West Bengal, India</p>
               </div>
             </details>
