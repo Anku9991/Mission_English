@@ -3,14 +3,15 @@
 import { useEffect, useState, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { doc, getDoc, collection, addDoc, query, where, getDocs } from "firebase/firestore"
+import Script from "next/script"
+import { doc, getDoc, collection, addDoc, query, where, getDocs, updateDoc, arrayUnion } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, CheckCircle2, ShieldCheck, Loader2, IndianRupee, QrCode, Upload, Clock, AlertCircle, Hash } from "lucide-react"
+import { ArrowLeft, CheckCircle2, ShieldCheck, Loader2, IndianRupee, CreditCard, Lock, Clock, AlertCircle } from "lucide-react"
 import type { Course, PaymentRequest } from "@/types"
 import { motion } from "framer-motion"
 import Image from "next/image"
@@ -24,22 +25,21 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
   
   const [course, setCourse] = useState<Course | null>(null)
   const [loading, setLoading] = useState(true)
-  const [txnId, setTxnId] = useState("")
   const [submitting, setSubmitting] = useState(false)
   
   const [existingPayment, setExistingPayment] = useState<PaymentRequest | null>(null)
-  const [paymentSettings, setPaymentSettings] = useState<{ upiId: string, merchantName: string, qrUrl: string } | null>(null)
+
+  // Load razorpay env directly or via API config if needed, we'll just check if script loads
+
 
   useEffect(() => {
     async function loadData() {
       if (!profile) return
       try {
         const studentProfile = profile as any
-        
-        // Parallelize all three Firebase network requests for instant loading (fixes 45-60s delay)
-        const [docSnap, settingsSnap, paymentDocs] = await Promise.all([
+        // Parallelize network requests
+        const [docSnap, paymentDocs] = await Promise.all([
           getDoc(doc(db, "courses", courseId)),
-          getDoc(doc(db, "settings", "payment")),
           getDocs(query(
             collection(db, "payment_requests"),
             where("studentId", "==", studentProfile.studentId)
@@ -49,10 +49,6 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
         if (!docSnap.exists()) throw new Error("Course not found")
         const courseData = { id: docSnap.id, ...docSnap.data() } as Course
         setCourse(courseData)
-
-        if (settingsSnap.exists()) {
-          setPaymentSettings(settingsSnap.data() as any)
-        }
 
         // Find latest pending or approved for THIS specific course
         const activePayment = paymentDocs.docs
@@ -71,27 +67,106 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
     loadData()
   }, [courseId, profile])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!txnId.trim() || !course || !profile) return
+  const handlePayNow = async () => {
+    if (!course || !profile) return
     setSubmitting(true)
+    
     try {
       const studentProfile = profile as any
-      const data: Omit<PaymentRequest, "id"> = {
-        studentId: studentProfile.studentId,
-        studentName: studentProfile.fullName,
-        courseId: course.id,
-        courseTitle: course.title,
-        amount: course.price,
-        txnId: txnId.trim().toUpperCase(),
-        status: "pending",
-        submittedAt: Date.now()
+      
+      // 1. Create Razorpay order on server
+      const res = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: course.price,
+          courseId: course.id,
+          courseTitle: course.title,
+          studentId: studentProfile.studentId
+        })
+      });
+      
+      const orderData = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(orderData.error || "Failed to create order");
       }
-      const docRef = await addDoc(collection(db, "payment_requests"), data)
-      setExistingPayment({ id: docRef.id, ...data })
+
+      // 2. Open Razorpay modal
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "", 
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Mission English Academy",
+        description: `Payment for ${course.title}`,
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            setSubmitting(true)
+            // 3. Verify signature on server
+            const verifyRes = await fetch("/api/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              })
+            });
+            
+            const verifyData = await verifyRes.json();
+            
+            if (!verifyRes.ok) {
+              throw new Error(verifyData.error || "Payment verification failed");
+            }
+            
+            // 4. Save to Firebase directly (since verified and client has update permission)
+            const paymentData: Omit<PaymentRequest, "id"> = {
+              studentId: studentProfile.studentId,
+              studentName: studentProfile.fullName,
+              courseId: course.id,
+              courseTitle: course.title,
+              amount: course.price,
+              txnId: response.razorpay_payment_id,
+              status: "approved", // instantly approved!
+              submittedAt: Date.now(),
+              reviewedAt: Date.now()
+            };
+            
+            const docRef = await addDoc(collection(db, "payment_requests"), paymentData);
+            
+            // Unlock course
+            await updateDoc(doc(db, "students", studentProfile.studentId), {
+              unlockedCourses: arrayUnion(course.id),
+              paymentStatus: "Paid",
+            });
+            
+            setExistingPayment({ id: docRef.id, ...paymentData });
+            
+          } catch (err: any) {
+            alert(err.message);
+          } finally {
+            setSubmitting(false)
+          }
+        },
+        prefill: {
+          name: studentProfile.fullName,
+          email: studentProfile.email,
+        },
+        theme: {
+          color: "#2563eb"
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any){
+        alert("Payment Failed: " + response.error.description);
+        setSubmitting(false);
+      });
+      rzp.open();
+
     } catch (err: any) {
-      alert("Error submitting payment proof: " + err.message)
-    } finally {
+      alert(err.message)
       setSubmitting(false)
     }
   }
@@ -165,7 +240,9 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <div className="max-w-4xl mx-auto pb-12">
       <div className="flex items-center gap-4 mb-8">
         <Link href="/student">
           <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-slate-200">
@@ -230,84 +307,36 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
             <div className="p-8">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <QrCode className="w-5 h-5" />
+                  <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Scan & Pay via UPI</h2>
-                  <p className="text-sm text-slate-500">Pay using GPay, PhonePe, Paytm or any UPI app</p>
+                  <h2 className="text-xl font-bold text-slate-900">Pay Securely Online</h2>
+                  <p className="text-sm text-slate-500">UPI, Cards, NetBanking, Wallets supported</p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-8 mb-10 p-6 bg-slate-50 border border-slate-200 rounded-2xl">
-                {/* QR Code */}
-                <div className="w-48 h-48 bg-white p-3 rounded-2xl shadow-sm border border-slate-200 relative shrink-0 flex items-center justify-center overflow-hidden">
-                  {paymentSettings?.qrUrl ? (
-                    <img src={paymentSettings.qrUrl} alt="UPI QR Code" className="w-full h-full object-contain" />
-                  ) : paymentSettings?.upiId ? (
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${paymentSettings.upiId}&pn=${encodeURIComponent(paymentSettings.merchantName || 'Mission English')}&am=${course.price}`} 
-                      alt="UPI QR Code" 
-                      className="w-full h-full object-contain" 
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-center opacity-50">
-                      <QrCode className="w-8 h-8 text-slate-400 mb-2" />
-                      <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">No QR Configured</p>
-                    </div>
-                  )}
-                </div>
+              <div className="p-8 bg-slate-50 border border-slate-200 rounded-3xl text-center mb-8">
+                <Lock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-slate-700 mb-2">Automated Instant Unlock</h3>
+                <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
+                  Complete the payment via Razorpay. Once successful, your course will be unlocked immediately without waiting for admin approval!
+                </p>
                 
-                <div className="space-y-4 w-full">
-                  <div>
-                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">UPI ID</Label>
-                    <div className="font-mono text-lg font-bold text-slate-900 mt-1">
-                      {paymentSettings?.upiId || "Not configured"}
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Merchant Name</Label>
-                    <div className="font-semibold text-slate-800 mt-1">
-                      {paymentSettings?.merchantName || "Mission English Academy"}
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-200">
-                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Amount to Pay</Label>
-                    <div className="text-2xl font-black text-blue-600 mt-1 flex items-center">
-                      <IndianRupee className="w-5 h-5" />{course.price}
-                    </div>
-                  </div>
-                </div>
+                <Button 
+                  onClick={handlePayNow} 
+                  disabled={submitting}
+                  className="w-full sm:w-auto px-10 h-14 rounded-2xl gradient-bg border-0 text-white font-bold text-lg btn-glow gap-2"
+                >
+                  {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+                  {submitting ? "Processing..." : `Pay ₹${course.price} Now`}
+                </Button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-3">
-                  <Label className="text-sm font-bold text-slate-800">Enter Transaction ID / UTR Number *</Label>
-                  <p className="text-xs text-slate-500 mb-2">After paying, find the 12-digit UTR/Txn ID in your UPI app and enter it below.</p>
-                  <div className="relative">
-                    <Hash className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                    <Input
-                      required
-                      placeholder="e.g. 312345678901"
-                      className="pl-12 h-14 rounded-2xl input-premium font-mono text-lg font-bold uppercase placeholder:normal-case placeholder:font-sans"
-                      value={txnId}
-                      onChange={(e) => setTxnId(e.target.value.replace(/\s/g, ""))}
-                    />
-                  </div>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  disabled={submitting || txnId.length < 8}
-                  className="w-full h-14 rounded-2xl gradient-bg border-0 text-white font-bold text-lg btn-glow gap-2"
-                >
-                  {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-                  {submitting ? "Submitting Proof..." : "Submit Payment Proof"}
-                </Button>
-              </form>
             </div>
           </Card>
         </div>
       </div>
     </div>
+    </>
   )
 }

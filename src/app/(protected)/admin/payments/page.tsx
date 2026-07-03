@@ -4,15 +4,14 @@ import { useEffect, useState } from "react"
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, addDoc, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, XCircle, Clock, Loader2, IndianRupee, User, BookOpen, Hash, AlertCircle, Download } from "lucide-react"
+import { CheckCircle2, XCircle, Clock, Loader2, IndianRupee, User, BookOpen, Hash, Download, Zap } from "lucide-react"
 import type { PaymentRequest } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<PaymentRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [processing, setProcessing] = useState<string | null>(null)
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending")
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("approved")
   const [selectedDate, setSelectedDate] = useState<string>("") // YYYY-MM-DD
 
   useEffect(() => {
@@ -39,41 +38,8 @@ export default function AdminPaymentsPage() {
     return () => unsub()
   }, [selectedDate])
 
-  const handleApprove = async (p: PaymentRequest) => {
-    if (!confirm(`Approve payment for "${p.courseTitle}" by ${p.studentName}?`)) return
-    setProcessing(p.id)
-    try {
-      // 1. Unlock course for student (add to unlockedCourses array)
-      await updateDoc(doc(db, "students", p.studentId), {
-        unlockedCourses: arrayUnion(p.courseId),
-        paymentStatus: "Paid",
-      })
-      // 2. Mark payment as approved
-      await updateDoc(doc(db, "payment_requests", p.id), {
-        status: "approved",
-        reviewedAt: Date.now(),
-      })
-    } catch (err: any) {
-      alert("Error approving: " + err.message)
-    } finally {
-      setProcessing(null)
-    }
-  }
-
-  const handleReject = async (p: PaymentRequest) => {
-    if (!confirm(`Reject payment for "${p.courseTitle}" by ${p.studentName}?`)) return
-    setProcessing(p.id)
-    try {
-      await updateDoc(doc(db, "payment_requests", p.id), {
-        status: "rejected",
-        reviewedAt: Date.now(),
-      })
-    } catch (err: any) {
-      alert("Error rejecting: " + err.message)
-    } finally {
-      setProcessing(null)
-    }
-  }
+    return () => unsub()
+  }, [selectedDate])
 
   const exportToCSV = () => {
     const dataToExport = filter === "all" ? payments : filtered
@@ -112,20 +78,13 @@ export default function AdminPaymentsPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-black text-slate-900">Payment Approvals</h1>
-          <p className="text-slate-500 mt-1 text-sm">Verify UPI transactions and unlock course access</p>
+          <h1 className="text-3xl font-black text-slate-900">Payment Ledger</h1>
+          <p className="text-slate-500 mt-1 text-sm">Automated transactions powered by Razorpay</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          {pendingCount > 0 && (
-            <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-xl text-sm font-semibold"
-            >
-              <AlertCircle className="w-4 h-4" />
-              {pendingCount} pending
-            </motion.div>
-          )}
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold">
+            <Zap className="w-4 h-4 fill-emerald-500" /> Auto-Verification Active
+          </div>
           <Button 
             onClick={exportToCSV} 
             variant="outline" 
@@ -242,29 +201,6 @@ export default function AdminPaymentsPage() {
                         {p.reviewedAt && <> · Reviewed: {new Date(p.reviewedAt).toLocaleString("en-IN")}</>}
                       </p>
                     </div>
-
-                    {/* Actions */}
-                    {p.status === "pending" && (
-                      <div className="flex gap-3 shrink-0">
-                        <Button
-                          variant="outline"
-                          onClick={() => handleReject(p)}
-                          disabled={isProcessing}
-                          className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl gap-2"
-                        >
-                          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                          Reject
-                        </Button>
-                        <Button
-                          onClick={() => handleApprove(p)}
-                          disabled={isProcessing}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2"
-                        >
-                          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                          Approve & Unlock
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               )
