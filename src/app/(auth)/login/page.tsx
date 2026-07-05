@@ -138,9 +138,6 @@ export default function LoginPage() {
           />
           <h1 className="text-3xl font-black text-slate-900">Welcome Back</h1>
           <p className="text-slate-500 mt-2 font-medium">Mission English</p>
-          <p className="text-xs text-blue-600 mt-1.5 font-semibold max-w-[280px] mx-auto italic leading-relaxed">
-            "The Only Institute Where You Can Learn English From Basic to Advanced."
-          </p>
         </div>
 
         {/* Card */}
@@ -186,61 +183,10 @@ export default function LoginPage() {
           </AnimatePresence>
 
           {/* Forms */}
-            {role === "student" ? (
-              <form
-                key="student"
-                onSubmit={handleStudentLogin}
-                className="space-y-5 animate-in fade-in zoom-in-95 duration-200"
-              >
-                <div className="space-y-2">
-                  <Label className="text-slate-700 font-semibold">Student ID</Label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="studentId"
-                      placeholder="e.g. ME001"
-                      className="pl-10 h-12 rounded-xl input-premium uppercase placeholder:normal-case font-semibold"
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-slate-700 font-semibold">4-Digit PIN</Label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="pin"
-                      type="password"
-                      placeholder="••••"
-                      maxLength={4}
-                      className="pl-10 h-12 rounded-xl input-premium tracking-[0.3em] font-bold text-center"
-                      value={pin}
-                      onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full h-12 rounded-xl gradient-bg border-0 text-white font-bold text-base btn-glow"
-                  disabled={loading}
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                  {loading ? loadingText || "Signing in..." : "Login to Dashboard"}
-                  {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
-                </Button>
-
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-slate-500 font-semibold">Or continue with</span>
-                  </div>
+              <div key="student" className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-bold text-slate-800">Student Portal</h3>
+                  <p className="text-sm text-slate-500 mt-1">Sign in with your Google account to access your courses, mock tests, and dashboard.</p>
                 </div>
 
                 <Button
@@ -282,7 +228,7 @@ export default function LoginPage() {
                   </svg>
                   Sign in with Google
                 </Button>
-              </form>
+              </div>
             ) : (
               <form
                 key="admin"

@@ -130,9 +130,6 @@ export default function AdminSidebar() {
         </div>
         
         <div className="text-center space-y-1.5 mt-2">
-          <p className="text-[10px] text-primary font-semibold italic leading-snug px-1">"The Only Institute Where You Can Learn English From Basic to Advanced."</p>
-          <div className="text-[10px] text-muted-foreground font-medium">
-          </div>
           <div className="pt-3 text-[9px] text-muted-foreground/60 font-bold tracking-widest uppercase border-t border-border mt-2">
             Powered By Pihnexa
           </div>
