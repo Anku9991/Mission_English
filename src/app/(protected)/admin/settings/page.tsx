@@ -111,6 +111,7 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           </CardContent>
+        </Card>
         <Card className="border-0 shadow-sm premium-card overflow-hidden border-red-200 dark:border-red-900/50">
           <div className="h-2 bg-gradient-to-r from-red-500 to-rose-600" />
           <CardHeader className="bg-secondary/50 border-b border-border">
