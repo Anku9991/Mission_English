@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Save, QrCode, CreditCard, Link as LinkIcon } from "lucide-react"
+import { Loader2, Save, QrCode, CreditCard, Link as LinkIcon, Trash2 } from "lucide-react"
+import { collection, getDocs, deleteDoc } from "firebase/firestore"
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true)
@@ -51,6 +52,30 @@ export default function AdminSettingsPage() {
     }
   }
 
+  const handleClearData = async () => {
+    if (!window.confirm("WARNING: This will permanently delete ALL students, results, and payments. Your admin account will not be affected. Are you 100% sure?")) return;
+    setSaving(true)
+    try {
+      // Clear Students
+      const studentSnap = await getDocs(collection(db, "students"))
+      for (const doc of studentSnap.docs) await deleteDoc(doc.ref)
+      
+      // Clear Results
+      const resultsSnap = await getDocs(collection(db, "results"))
+      for (const doc of resultsSnap.docs) await deleteDoc(doc.ref)
+      
+      // Clear Payments
+      const paymentsSnap = await getDocs(collection(db, "payment_requests"))
+      for (const doc of paymentsSnap.docs) await deleteDoc(doc.ref)
+      
+      alert("All student data has been successfully cleared.")
+    } catch (err: any) {
+      alert("Error clearing data: " + err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return <div className="flex justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>
   }
@@ -84,6 +109,32 @@ export default function AdminSettingsPage() {
               <div className="mt-6 p-4 bg-card rounded-xl border border-border inline-block text-sm font-medium text-muted-foreground">
                 To manage payouts, refunds, or check transactions, please visit your <a href="https://dashboard.razorpay.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Razorpay Dashboard</a>.
               </div>
+            </div>
+          </CardContent>
+        <Card className="border-0 shadow-sm premium-card overflow-hidden border-red-200 dark:border-red-900/50">
+          <div className="h-2 bg-gradient-to-r from-red-500 to-rose-600" />
+          <CardHeader className="bg-secondary/50 border-b border-border">
+            <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <Trash2 className="w-5 h-5" /> Danger Zone
+            </CardTitle>
+            <CardDescription>Permanently remove data from the platform.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+            <div className="p-4 border border-red-200 dark:border-red-900/50 rounded-xl bg-red-50 dark:bg-red-950/20">
+              <h3 className="font-bold text-red-600 dark:text-red-400 mb-2">Clear All Student Data</h3>
+              <p className="text-sm text-red-600/80 dark:text-red-400/80 mb-4">
+                This action will permanently delete all students, their test results, and payment histories. This cannot be undone. 
+                Your courses, tests, and admin account will remain safe.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={handleClearData} 
+                disabled={saving}
+                className="font-bold rounded-xl"
+              >
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+                {saving ? "Deleting..." : "Permanently Delete Data"}
+              </Button>
             </div>
           </CardContent>
         </Card>

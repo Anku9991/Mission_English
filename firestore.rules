@@ -23,9 +23,11 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         isAdmin() || 
         resource.data.uid == request.auth.uid ||
-        request.auth.token.email == (studentId.lower() + '@me.com')
+        request.auth.token.email == (studentId.lower() + '@me.com') ||
+        request.auth.uid == studentId
       );
-      allow update: if isAuthenticated() && request.auth.token.email == (studentId.lower() + '@me.com');
+      allow create: if isAuthenticated() && request.auth.uid == studentId;
+      allow update: if isAuthenticated() && (request.auth.token.email == (studentId.lower() + '@me.com') || request.auth.uid == studentId);
       allow write: if isAdmin();
     }
 

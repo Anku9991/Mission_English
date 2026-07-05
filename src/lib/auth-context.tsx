@@ -73,14 +73,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         try {
-          const isStudentEmail = firebaseUser.email?.endsWith("@me.com")
-          
-          if (isStudentEmail) {
-            // Student Profile Flow - Use onSnapshot for real-time updates!
-            const studentId = firebaseUser.email!.split("@")[0].toUpperCase()
+          // 1. Check if user is an Admin
+          const userDocRef = doc(db, "users", firebaseUser.uid)
+          const userDocSnap = await getDoc(userDocRef)
+
+          if (userDocSnap.exists()) {
+            // ADMIN FLOW
+            const finalProfile = { ...userDocSnap.data(), role: "admin" } as AdminProfile
+            setProfile(finalProfile)
+            localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
+            setLoading(false)
+          } else {
+            // STUDENT FLOW
+            let studentId = firebaseUser.uid // Default to UID for Google Auth
+            if (firebaseUser.email?.endsWith("@me.com")) {
+              studentId = firebaseUser.email.split("@")[0].toUpperCase()
+            }
+            
             const docRef = doc(db, "students", studentId)
             
-            profileUnsub = onSnapshot(docRef, (docSnap) => {
+            profileUnsub = onSnapshot(docRef, async (docSnap) => {
               let finalProfile: UserProfile;
               if (docSnap.exists()) {
                 const data = docSnap.data()
@@ -90,10 +102,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   unlockedCourses: data.unlockedCourses || []
                 } as StudentProfile
               } else {
+                // New student via Google Auth
                 finalProfile = {
                   studentId,
-                  fullName: "Student",
+                  fullName: firebaseUser.displayName || "Student",
                   phone: "",
+                  email: firebaseUser.email || "",
                   course: "",
                   batch: "",
                   paymentStatus: "Pending",
@@ -103,7 +117,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   createdAt: Date.now(),
                   role: "student"
                 }
+                // Save to Firestore so it persists
+                await setDoc(docRef, finalProfile, { merge: true }).catch(console.error)
               }
+              
               setProfile(prev => {
                 if (JSON.stringify(prev) === JSON.stringify(finalProfile)) return prev;
                 return finalProfile;
@@ -111,27 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
               setLoading(false)
             });
-            
-          } else {
-            // Admin Profile Flow
-            const docRef = doc(db, "users", firebaseUser.uid)
-            const docSnap = await getDoc(docRef)
-            let finalProfile: UserProfile;
-            
-            if (docSnap.exists()) {
-              finalProfile = { ...docSnap.data(), role: "admin" } as AdminProfile
-            } else {
-              finalProfile = {
-                uid: firebaseUser.uid,
-                role: "admin",
-                email: firebaseUser.email || undefined,
-                createdAt: Date.now()
-              }
-              await setDoc(docRef, finalProfile)
-            }
-            setProfile(finalProfile)
-            localStorage.setItem(`me_profile_${firebaseUser.uid}`, JSON.stringify(finalProfile))
-            setLoading(false)
           }
 
         } catch (error) {
