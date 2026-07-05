@@ -183,6 +183,7 @@ export default function LoginPage() {
           </AnimatePresence>
 
           {/* Forms */}
+          {role === "student" ? (
               <div key="student" className="space-y-5 animate-in fade-in zoom-in-95 duration-200">
                 <div className="text-center mb-6">
                   <h3 className="text-lg font-bold text-slate-800">Student Portal</h3>

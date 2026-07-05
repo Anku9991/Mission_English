@@ -47,17 +47,18 @@ service cloud.firestore {
     // Payment Requests Collection
     match /payment_requests/{paymentId} {
       // Users can create and read their own payments
-      allow create: if isAuthenticated() && request.auth.token.email == (request.resource.data.studentId.lower() + '@me.com');
-      allow read: if isAuthenticated() && request.auth.token.email == (resource.data.studentId.lower() + '@me.com');
+      allow create: if isAuthenticated() && (request.auth.token.email == (request.resource.data.studentId.lower() + '@me.com') || request.auth.uid == request.resource.data.studentId);
+      allow read: if isAuthenticated() && (request.auth.token.email == (resource.data.studentId.lower() + '@me.com') || request.auth.uid == resource.data.studentId);
       // Admins can read and update (approve/reject) all payments
       allow read, update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // Results Collection
     match /results/{resultId} {
       // Users can create and read their own results
-      allow create: if isAuthenticated() && request.auth.token.email == (request.resource.data.studentId.lower() + '@me.com');
-      allow read: if isAuthenticated() && request.auth.token.email == (resource.data.studentId.lower() + '@me.com');
+      allow create: if isAuthenticated() && (request.auth.token.email == (request.resource.data.studentId.lower() + '@me.com') || request.auth.uid == request.resource.data.studentId);
+      allow read: if isAuthenticated() && (request.auth.token.email == (resource.data.studentId.lower() + '@me.com') || request.auth.uid == resource.data.studentId);
       // Admins can view and update (publish) all results
       allow read, update, delete: if isAdmin();
     }
